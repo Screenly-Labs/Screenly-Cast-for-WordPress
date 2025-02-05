@@ -83,16 +83,11 @@ fixed unmoving content usually looks and reads the best.
 * PHP 7.4 or higher (for local development without Docker)
 * WordPress 6.2.4 or higher
 * Composer for dependency management
-* Node.js and NPM (for syncing version across all the relevant files in the project)
 
 > [!NOTE]
 > While there's an option to run the development environment without containerization,
 > it is highly recommended to use Docker for development to minimize the setup and
 > configuration needed.
->
-> As for a containerized development environment, we still need to have Node.js and
-> NPM installed on your machine in the meantime while we work on a more container-friendly
-> development environment.
 
 ### Setup
 
@@ -125,8 +120,12 @@ docker compose --profile test up wordpress-test
 #### Running linting checks
 
 ```bash
-# Run linting checks
+# Run PHP linting checks
 docker compose --profile lint up
+
+# Run Node.js linting checks
+docker compose --profile nodejs run --rm nodejs \
+  bash -c "npm install && npm run lint"
 ```
 
 ### Release Process
@@ -136,7 +135,13 @@ docker compose --profile lint up
     * `Version`
     * `Requires at least`
     * `Requires PHP`
-  * Run `npm run version:sync` to sync [`package.json`](/package.json) version with the plugin.
+  * Run the following commands to sync [`package.json`](/package.json) version with the plugin:
+
+    ```bash
+    docker compose --profile nodejs run --rm nodejs \
+      bash -c "npm run version:sync && npm install"
+    ```
+
   * Add detailed changelog entry in `readme.txt` under the `== Changelog ==`
     section
     * Follow the existing format (e.g., `= 1.0.0 =`)

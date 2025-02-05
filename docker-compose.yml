@@ -94,6 +94,14 @@ services:
     profiles:
       - lint
 
+  nodejs:
+    image: node:20-slim
+    working_dir: /app
+    volumes:
+      - .:/app
+    profiles:
+      - nodejs
+
 volumes:
   wordpress_data:
   db_data:
