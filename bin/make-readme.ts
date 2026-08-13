@@ -24,19 +24,18 @@
  * The ordering problem this creates is worth stating, because it drives the release
  * workflow's trigger. The changelog for version X lives in X's GitHub release, which
  * does not exist at the moment X's tag is pushed. So the WordPress.org deploy runs on
- * `release: published`, not on the tag push. Before the release is cut,
- * readme/next-release.md stands in for it — that file is where the notes are
- * reviewed, and it is what `gh release create --notes-file` publishes.
+ * `release: published`, not on the tag push, and the notes for a version not yet
+ * released live in its draft release — never in a file here. See the comment on the
+ * draft filter in main() for why that distinction is load-bearing.
  */
 
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)))
 const LISTING_FILE = join(ROOT, 'readme/listing.md')
 const HISTORY_FILE = join(ROOT, 'readme/history.md')
-const NEXT_RELEASE_FILE = join(ROOT, 'readme/next-release.md')
 const PACKAGE_FILE = join(ROOT, 'package.json')
 const README_OUT = join(ROOT, 'screenly-cast/readme.txt')
 const CHANGELOG_OUT = join(ROOT, 'screenly-cast/changelog.txt')
@@ -472,11 +471,29 @@ function main(): number {
     releases = fetchReleases(repoSlug(pkg.repository.url))
   }
 
-  const published = releases.filter(
-    (release) => !release.draft && !release.prerelease && CALVER_TAG.test(release.tag_name)
-  )
+  /*
+   * Published releases, plus the draft for the version being prepared.
+   *
+   * The draft is the whole point. Notes for an unreleased version have to live
+   * somewhere before they are published, and the obvious-looking answer — a file in
+   * the repository — is a second copy that has to be cleared by hand after every
+   * release. Forget once and the previous version's notes are published as the next
+   * version's changelog, silently and plausibly. GitHub already models "written, not
+   * yet published" as a draft, so there is one copy throughout: draft it, edit it,
+   * publish it.
+   *
+   * Drafts are only visible to accounts with push access. A pull request from a fork
+   * therefore renders the listing without the pending entry, which is correct — it
+   * renders what is public — and never fails for want of a file.
+   */
+  const usable = releases.filter((release) => {
+    if (release.prerelease || !CALVER_TAG.test(release.tag_name)) {
+      return false
+    }
+    return !release.draft || release.tag_name === pkg.version
+  })
 
-  const fromReleases: Entry[] = published
+  const entries: Entry[] = usable
     .map((release) => {
       const { body } = splitNotes(release.body ?? '')
       return {
@@ -486,22 +503,7 @@ function main(): number {
     })
     .sort((a, b) => compareVersions(b.version, a.version))
 
-  /*
-   * The release being prepared has no GitHub release yet, so its notes come from
-   * next-release.md — but only while that is true. Once the release is published its
-   * body is authoritative, and taking both would list the version twice.
-   */
-  let notesSource = ''
-  const entries = [...fromReleases]
-  if (fromReleases.some((entry) => entry.version === pkg.version)) {
-    notesSource = published.find((release) => release.tag_name === pkg.version)?.body ?? ''
-  } else if (existsSync(NEXT_RELEASE_FILE)) {
-    notesSource = readFileSync(NEXT_RELEASE_FILE, 'utf8')
-    const body = tidy(toReadmeMarkup(splitNotes(notesSource).body, { nested: true }))
-    if (body !== '') {
-      entries.unshift({ version: pkg.version, body })
-    }
-  }
+  const notesSource = usable.find((release) => release.tag_name === pkg.version)?.body ?? ''
 
   entries.push(...parseHistory(readFileSync(HISTORY_FILE, 'utf8')))
 
