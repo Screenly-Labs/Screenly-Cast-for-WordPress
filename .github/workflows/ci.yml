@@ -160,6 +160,21 @@ jobs:
   plugin-check:
     name: WordPress Plugin Check
     runs-on: ubuntu-24.04
+    # Plugin Check summarises its findings as a comment on the pull request, which
+    # is the whole point of running it here rather than reading a log. Posting that
+    # needs pull-requests: write, and the workflow-level grant is contents: read —
+    # so the action was failing at the last step with "Resource not accessible by
+    # integration" and annotating every run with a warning.
+    #
+    # Scoped to this job, and contents: read is restated because a job-level block
+    # replaces the workflow-level one outright rather than adding to it.
+    #
+    # This does not help a pull request from a fork: GITHUB_TOKEN is read-only there
+    # whatever the workflow asks for. The action logs the failure and carries on, so
+    # a fork PR still gets the check, just not the comment.
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
