@@ -199,14 +199,17 @@ image is the subject of the render.
 ### Requirements
 
 * [Bun](https://bun.sh) 1.3 or later
-* Docker, for `wp-env`
-* PHP 8.2+ and Composer, for the PHP tooling
+* Docker, for `wp-env` and for the PHP tooling
+
+No local PHP or Composer install is needed. `./bin/php.sh` runs both in the
+official `php:8.2-cli` image, which is also exactly what CI runs — so a green run
+locally and a green run in CI mean the same thing, on the same PHP.
 
 ### Setup
 
 ```bash
 bun install
-composer install
+./bin/php.sh composer install
 bun run build      # compile signage CSS/JS into screenly-cast/assets/dist
 bun run env:start  # WordPress at http://localhost:8888 (admin / password)
 ```
@@ -222,8 +225,8 @@ bun run typecheck     # tsc
 bun run version:check # plugin header agrees with package.json
 bun run readme        # render readme.txt; fails on anything WP.org rejects
 
-composer run lint:php # PHP_CodeSniffer, WordPress standards
-composer run analyse  # PHPStan, level max
+./bin/php.sh composer run lint:php # PHP_CodeSniffer, WordPress standards
+./bin/php.sh composer run analyse  # PHPStan, level max
 
 bun run test:php      # PHPUnit, inside wp-env
 bun run env:seed      # seed the browser-test fixture corpus

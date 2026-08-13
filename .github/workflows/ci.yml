@@ -66,39 +66,43 @@ jobs:
   php-static:
     name: PHP static analysis (strict)
     runs-on: ubuntu-24.04
+    # PHP runs in the official image via ./bin/php.sh rather than through
+    # shivammathur/setup-php. There is no official GitHub action for PHP, but there
+    # are official Docker images for both PHP and Composer, so a third party in the
+    # trust path — one that takes the job's GITHUB_TOKEN by default, through an
+    # input we never asked for — buys nothing here.
+    #
+    # It also runs the analysis on 8.2, the version this plugin claims as its floor,
+    # instead of whatever the action was asked to install.
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
-        with:
-          php-version: '8.2'
-          coverage: none
-          tools: composer:v2
 
       # --strict also rejects a lock file that has drifted from composer.json.
       - name: Validate composer.json and composer.lock
-        run: composer validate --strict --no-check-publish
+        run: ./bin/php.sh composer validate --strict --no-check-publish
 
       - name: Install Composer dependencies
-        run: composer install --no-interaction --no-progress
+        run: ./bin/php.sh composer install --no-interaction --no-progress
 
       - name: Audit dependencies for advisories
-        run: composer audit --no-interaction
+        run: ./bin/php.sh composer audit --no-interaction
 
       # Every PHP file must compile. Catches a syntax error in a file that no
       # test happens to load, such as a template or uninstall.php.
       - name: Lint PHP syntax
         run: |
-          find screenly-cast tests -name '*.php' -print0 \
-            | xargs -0 -n1 -P4 php -l > /dev/null
+          ./bin/php.sh sh -c \
+            "find screenly-cast tests -name '*.php' -print0 | xargs -0 -n1 -P4 php -l > /dev/null"
 
       # WordPress standards, plus the slevomat sniffs that make native parameter,
-      # property and return types mandatory rather than optional.
+      # property and return types mandatory rather than optional. Run through the
+      # composer scripts, not the binaries, so the flags cannot drift from local use.
       - name: PHP_CodeSniffer
-        run: composer run lint:php
+        run: ./bin/php.sh composer run lint:php
 
       # PHPStan at level max, with phpstan-strict-rules and the deprecation rules.
       - name: PHPStan
-        run: composer run analyse
+        run: ./bin/php.sh composer run analyse
 
   php-tests:
     name: PHPUnit PHP ${{ matrix.php }} / WP ${{ matrix.wp }}
@@ -130,15 +134,15 @@ jobs:
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: ${{ env.BUN_VERSION }}
-      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
-        with:
-          php-version: ${{ matrix.php }}
-          coverage: none
-          tools: composer:v2
-
       - run: bun install --frozen-lockfile
+
+      # No PHP is installed on the runner for this job, and none is needed. PHPUnit
+      # runs inside wp-env at the matrix version — see the override file written
+      # below — so the only thing a host PHP was ever doing here was running
+      # Composer, which the official image does. Installing a matching PHP on the
+      # host also read as though it were the version under test, which it was not.
       - name: Install Composer dependencies
-        run: composer install --no-interaction --no-progress
+        run: ./bin/php.sh composer install --no-interaction --no-progress
 
       - name: Point wp-env at this matrix cell
         run: |
