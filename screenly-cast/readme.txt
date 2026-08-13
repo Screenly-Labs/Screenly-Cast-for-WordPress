@@ -5,7 +5,7 @@ Requires at least: 6.8
 Tested up to: 7.1
 Stable tag: 2026.8.0
 Requires PHP: 8.2
-License: AGPLv3
+License: AGPL-3.0-only
 License URI: https://www.gnu.org/licenses/agpl-3.0.html
 
 Render posts, pages and image media in a layout built for digital signage. Append ?srly to any URL.

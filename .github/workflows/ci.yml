@@ -95,14 +95,21 @@ jobs:
         # Instead: every supported PHP against current WP, plus every supported
         # WP against our minimum PHP, plus newest PHP against trunk as an
         # early-warning cell.
+        #
+        # `ref` is stated explicitly rather than derived from `wp`, because the
+        # mapping is not uniform: released versions have a tag, but 7.1 has only a
+        # branch until it ships, and trunk is a branch by definition. Deriving
+        # `tags/<version>` silently produced an unresolvable ref for 7.1 and every
+        # one of those cells failed in wp-env rather than in a way that named the
+        # cause. Swap 7.1 to `tags/7.1` once it is released.
         include:
-          - { php: '8.2', wp: '7.1' }
-          - { php: '8.3', wp: '7.1' }
-          - { php: '8.4', wp: '7.1' }
-          - { php: '8.2', wp: '7.0' }
-          - { php: '8.2', wp: '6.9' }
-          - { php: '8.2', wp: '6.8' }
-          - { php: '8.4', wp: 'trunk' }
+          - { php: '8.2', wp: '7.1', ref: '7.1-branch' }
+          - { php: '8.3', wp: '7.1', ref: '7.1-branch' }
+          - { php: '8.4', wp: '7.1', ref: '7.1-branch' }
+          - { php: '8.2', wp: '7.0', ref: 'tags/7.0.4' }
+          - { php: '8.2', wp: '6.9', ref: 'tags/6.9.7' }
+          - { php: '8.2', wp: '6.8', ref: 'tags/6.8.8' }
+          - { php: '8.4', wp: 'trunk', ref: 'master' }
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
@@ -120,11 +127,7 @@ jobs:
 
       - name: Point wp-env at this matrix cell
         run: |
-          if [ "${{ matrix.wp }}" = "trunk" ]; then
-            core="WordPress/WordPress#master"
-          else
-            core="WordPress/WordPress#tags/${{ matrix.wp }}"
-          fi
+          core="WordPress/WordPress#${{ matrix.ref }}"
           printf '{\n  "core": "%s",\n  "phpVersion": "%s"\n}\n' \
             "$core" "${{ matrix.php }}" > .wp-env.override.json
           cat .wp-env.override.json
