@@ -250,7 +250,7 @@ and are not in the repository. Three inputs:
 | Source | Becomes |
 | --- | --- |
 | `readme/listing.md` | the description, installation, FAQ and screenshots |
-| GitHub releases | the changelog, one entry per CalVer release |
+| GitHub releases | the changelog, one entry per CalVer release or draft |
 | `readme/history.md` | the pre-CalVer changelog, frozen |
 
 ```bash
@@ -276,26 +276,36 @@ The version lives in `package.json` and is propagated everywhere else:
 # 1. Set the new CalVer version in package.json (YYYY.M.MICRO), then:
 bun run version:sync   # writes the header, SRLY_VERSION and the support floor
 bun run build          # rebuild the committed assets
-# 2. Write the release notes in readme/next-release.md
-# 3. Commit, then tag with the exact same version — no `v` prefix
-git tag 2026.8.1 && git push origin 2026.8.1
-# 4. Cut the release. This is what deploys.
-gh release create 2026.8.1 --notes-file readme/next-release.md
+# 2. Draft the release, and write the notes in it. Edit it as work lands.
+gh release create 2026.8.1 --draft --target master --title 2026.8.1
+# 3. Commit and merge everything above.
+# 4. Publish the draft. This is what deploys, and it creates the tag.
+gh release edit 2026.8.1 --draft=false
 ```
 
-**Publishing the release deploys to WordPress.org; pushing the tag does not.**
-The changelog is read from the release notes, and at the moment the tag is
-pushed the release does not exist yet — a tag-triggered deploy would ship a
-readme whose changelog stopped at the previous version. The workflow refuses to
-publish when the tag and the plugin header disagree, so a release cut without
-running `version:sync` fails loudly instead of shipping a mislabelled build.
+**Publishing the release deploys to WordPress.org; pushing a tag does not.**
+The changelog is read from the release notes, and at the moment a tag is pushed
+the release does not exist yet — a tag-triggered deploy would ship a readme whose
+changelog stopped at the previous version. The workflow refuses to publish when
+the tag and the plugin header disagree, so a release cut without running
+`version:sync` fails loudly instead of shipping a mislabelled build.
 
-`readme/next-release.md` is where notes for the release being prepared are
-written and reviewed, which is the point of keeping it in the repository — a
-changelog entry deserves review like anything else. Once the release exists, its
-published body wins and the file is ignored, so it cannot go stale into a
-listing. Start a line with `<!-- upgrade-notice -->` and the paragraph after it
-becomes the WordPress.org upgrade notice.
+Notes for an unreleased version live in its **draft release**, and nowhere else.
+There is deliberately no file in this repository holding them: that would be a
+second copy needing to be cleared by hand after every release, and forgetting once
+would publish the previous version's notes as the next version's changelog —
+silently, and plausibly enough that nobody would catch it. A draft is the same
+text in the same place it will eventually be published from.
+
+`bun run readme` reads the draft for the version in `package.json` and treats it
+as that version's changelog entry, so the listing can be previewed in full before
+anything is published. Drafts are visible only to accounts with push access, so
+a pull request from a fork renders the listing without the pending entry rather
+than failing.
+
+Start a line in the notes with `<!-- upgrade-notice -->` and the paragraph after
+it becomes the WordPress.org upgrade notice, lifted out of the changelog entry so
+it is not printed twice.
 
 To build an installable zip by hand:
 
