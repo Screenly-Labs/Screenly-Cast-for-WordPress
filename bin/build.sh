@@ -15,6 +15,19 @@
 
 set -euo pipefail
 
+# Name the missing tool rather than failing obscurely at the point of use. Without
+# this, a machine without `zip` copies and validates the whole plugin and then dies
+# on the last line with nothing to indicate why — which is exactly what happened.
+missing_tools=()
+for tool in rsync zip; do
+  command -v "$tool" >/dev/null 2>&1 || missing_tools+=("$tool")
+done
+if [ "${#missing_tools[@]}" -ne 0 ]; then
+  echo "error: required tool(s) not installed: ${missing_tools[*]}" >&2
+  echo "       on Debian or Ubuntu: sudo apt-get install -y ${missing_tools[*]}" >&2
+  exit 1
+fi
+
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SLUG="screenly-cast"
 BUILD_ROOT="$ROOT/build"

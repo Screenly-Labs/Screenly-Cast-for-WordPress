@@ -36,6 +36,12 @@ jobs:
       - name: Lint (Biome + markdownlint)
         run: bun run lint
 
+      # shellcheck ships on the runner image, so this needs no third-party action.
+      # --severity=style because the shipped scripts are clean at that level and
+      # there is no reason to let them regress to merely "no errors".
+      - name: Lint shell scripts
+        run: shellcheck --severity=style --format=gcc bin/*.sh
+
       - name: Typecheck
         run: bun run typecheck
 
