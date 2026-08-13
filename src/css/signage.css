@@ -1,17 +1,17 @@
 /* =========================================================================
-   Screenly Cast — the signage stylesheet.
+   Screenly Cast: the signage stylesheet.
 
    Design direction: a content-responsive poster. The composition inverts on what
    the entry actually has. With a featured image it is a full-bleed photograph
    with a scrim and the text set low; without one the type becomes the image.
-   That inversion is the signature element — the same template reads either as a
+   That inversion is the signature element, the same template reads either as a
    photographic poster or a typographic one, and which it is says something true
    about the post rather than decorating it.
 
    The medium drives the rest: read at three metres, unattended, fixed dwell, no
    interaction, and correct from a 480x800 Raspberry Pi Touch Display up to 4K in
-   both orientations. There are therefore no pixel breakpoints — the fluid root
-   from the signage-kit preset is orientation-neutral — only orientation queries
+   both orientations. There are therefore no pixel breakpoints: the fluid root
+   from the signage-kit preset is orientation-neutral, only orientation queries
    where a composition genuinely needs one.
    ========================================================================= */
 
@@ -32,7 +32,7 @@
    standalone app served at the document root, but a WordPress plugin is served
    from /wp-content/plugins/screenly-cast/, so every one of those faces would
    404. These URLs are relative to the built stylesheet instead, which resolves
-   correctly no matter where WordPress itself is installed — including
+   correctly no matter where WordPress itself is installed, including
    subdirectory installs.
 
    The woff2 files are vendored by syncFonts() in build.ts, so the kit still owns
@@ -42,7 +42,7 @@
    rewrites that prefix. Once it is released and the pinned tag in package.json
    moves, this whole block should be deleted in favour of
    `@import '@screenly-labs/signage-kit/styles/fonts.css'` plus
-   `processCss(css, { fontPath: 'fonts/' })` in build.ts — at which point the kit is
+   `processCss(css, { fontPath: 'fonts/' })` in build.ts, at which point the kit is
    once again the only place that decides which font files ship.
    https://github.com/Screenly-Labs/signage-kit/pull/29
    ------------------------------------------------------------------------- */
@@ -85,10 +85,10 @@
   /* A near-black with a trace of blue rather than #000: emissive panels band on
      pure black, and a slight cast reads as deliberate at distance. */
   --color-ground: #0b0d12;
-  /* Derived from the channel triplet in :root — see the note there. */
+  /* Derived from the channel triplet in :root, see the note there. */
   --color-ground-deep: rgb(var(--srly-ground-deep-rgb));
 
-  /* Warm off-white rather than #fff — less glare in a dim room. */
+  /* Warm off-white rather than #fff, for less glare in a dim room. */
   --color-ink: #f4f1ec;
   --color-ink-soft: #d9d5ce;
   --color-ink-dim: #949aa6;
@@ -117,7 +117,7 @@
      *
      * This is the single definition of that colour; --color-ground-deep above is
      * built from it. The scrim previously repeated the literal `rgb(5 7 10 / …)`
-     * nine times, which meant overriding the token did nothing to the scrim — the
+     * nine times, which meant overriding the token did nothing to the scrim: the
      * exact drift tokens exist to prevent.
      *
      * A triplet rather than color-mix() because color-mix() is Chrome 111, above
@@ -152,7 +152,7 @@
  * A fixed height, not a minimum.
  *
  * With min-height the stage grows to whatever its content needs, so an overlong
- * entry silently made the stage taller than the screen — and any "does this fit?"
+ * entry silently made the stage taller than the screen, and any "does this fit?"
  * check measured against a container that had already stretched to accommodate
  * it, which is circular and always answers yes. Pinning the stage to the viewport
  * makes overflow detectable, and with overflow:hidden it also makes it impossible
@@ -168,7 +168,7 @@
 }
 
 /* -------------------------------------------------------------------------
-   Figure — full bleed, behind everything
+   Figure: full bleed, behind everything
    ------------------------------------------------------------------------- */
 
 .srly-figure {
@@ -188,11 +188,11 @@
 
 /*
  * The scrim carries the text, so it is weighted towards the edge the text sits
- * on — but it never reaches zero opacity, even at the far edge.
+ * on, but it never reaches zero opacity, even at the far edge.
  *
  * An earlier version faded to fully transparent at the top and looked good over
- * a dark photograph. Over a bright one — a washed-out sky, a pale interior, which
- * is a large share of real signage imagery — the headline became unreadable. A
+ * a dark photograph. Over a bright one, a washed-out sky, a pale interior, which
+ * is a large share of real signage imagery, the headline became unreadable. A
  * plugin cannot choose the photograph, so the floor is deliberate: legibility at
  * three metres is worth more than fidelity to someone's picture.
  */
@@ -205,7 +205,7 @@
    *
    * At backdrop+1 this tied with --z-index-content, and because a ::after paints
    * after its element's children, the scrim landed on top of the text it exists to
-   * sit under — dimming the headline to near-invisibility over any image. This is
+   * sit under, dimming the headline to near-invisibility over any image. This is
    * exactly the failure the shared z-index scale in signage-kit's preset was
    * introduced to prevent, and it still catches you if you do arithmetic on it.
    *
@@ -273,7 +273,7 @@
 }
 
 /* -------------------------------------------------------------------------
-   Eyebrow — the date for posts, the site name otherwise.
+   Eyebrow: the date for posts, the site name otherwise.
 
    Which of the two appears is information, not ornament: a post has a
    meaningful date and a page does not, so a page names its source instead.
@@ -311,7 +311,7 @@
 }
 
 /* -------------------------------------------------------------------------
-   Title — tiered rather than continuously scaled.
+   Title: tiered rather than continuously scaled.
 
    The tier is chosen from the title's own length by the fitter, which then steps
    down if the composition still overflows. Tiers rather than a continuous shrink
@@ -475,7 +475,7 @@
 }
 
 /* -------------------------------------------------------------------------
-   Motion — one orchestrated entrance, and nothing else.
+   Motion: one orchestrated entrance, and nothing else.
    ------------------------------------------------------------------------- */
 
 @media (prefers-reduced-motion: no-preference) {
@@ -501,7 +501,7 @@
  *
  * The shared kill-switch in the preset stops animation on html.legacy, but the
  * signage-kit README is explicit that any element which animates in from
- * opacity:0 needs its own resting rule in the app — otherwise a below-floor
+ * opacity:0 needs its own resting rule in the app, otherwise a below-floor
  * player is left holding the animation's start frame and shows a blank screen.
  * That is precisely the case here.
  *

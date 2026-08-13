@@ -3,7 +3,7 @@
  * Renders the WordPress.org plugin icons from the master SVG.
  *
  * The directory shows an SVG where it can and falls back to PNG elsewhere, so all
- * three have to agree — regenerating them from one source is the only way that
+ * three have to agree, and regenerating them from one source is the only way that
  * stays true. Run this after changing .wordpress-org/icon.svg.
  *
  * Rendered through the browser Playwright already provides, so this adds no image

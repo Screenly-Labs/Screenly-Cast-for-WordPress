@@ -40,7 +40,7 @@ signage render from your own browser.
     * `https://www.mydomain.com/my-post-url?srly`
     * `https://www.mydomain.com/my-page-url?srly`
     * `https://www.mydomain.com/my-attachment-url?srly`
-    * `https://www.mydomain.com/?somevar=1&anothervar=2&srly` — when the URL
+    * `https://www.mydomain.com/?somevar=1&anothervar=2&srly`, when the URL
       already has parameters
 
     The parameter needs no value. `?srly` on its own is enough.
@@ -57,7 +57,7 @@ open a web page.
 ## How it works
 
 A request carrying `srly` is rendered by the plugin's own template, with its
-own stylesheet. **The site's active theme is never modified** — not for that
+own stylesheet. **The site's active theme is never modified**, not for that
 request, and not for anyone else's.
 
 ### Player detection
@@ -66,14 +66,14 @@ A recognised player is **redirected** to the same URL with `?srly` added, rather
 than being served signage on the original URL. That choice is about caching, and
 it is the whole reason the feature is safe to have on by default: returning two
 different pages for one URL depending on request headers means any page cache or
-CDN serves whichever it cached first to everybody — a screen gets the normal
+CDN serves whichever it cached first to everybody: a screen gets the normal
 theme, or a visitor gets the signage render. `Vary` is not a dependable fix, as
 CDNs routinely strip or ignore it. Two URLs cache independently; only the
 redirect itself is marked uncacheable, and it is a few bytes.
 
 Signals used, strongest first: the `X-Screenly-*` metadata headers, the Android
 `X-Requested-With` package name, then user agent tokens that name a player and
-nothing else — Screenly, Anthias, BrightSign, IAdea, Slideshow, Unifi Connect.
+nothing else: Screenly, Anthias, BrightSign, IAdea, Slideshow, Unifi Connect.
 
 **Detection is deliberately cautious, because the two failure modes are not
 symmetric.** A missed player still works with `?srly`. A wrongly-claimed device
@@ -81,7 +81,7 @@ shows a signage render to somebody who was only browsing, with no explanation
 and no way back. So a signal has to be conclusive.
 
 That rules out signals signage-kit rates medium or low confidence, which is
-right for a classifier — you filter on confidence afterwards — and wrong for
+right for a classifier (you filter on confidence afterwards) and wrong for
 something that changes what a person sees:
 
 | Excluded | Because |
@@ -119,7 +119,7 @@ restores the theme you were using, and says so.
 
 What a render contains: the title, the date for posts (the site name for
 pages), a short body, and the featured image if there is one. What it does
-not: navigation, sidebars, comments, sharing buttons, or links — links are
+not: navigation, sidebars, comments, sharing buttons, or links. Links are
 reduced to their text, because there is nothing to click.
 
 Design decisions that follow from the medium:
@@ -185,7 +185,7 @@ The tokens worth knowing:
 
 `--srly-ground-deep-rgb` is a channel triplet rather than a colour so the scrim
 can apply a different alpha at each gradient stop. `color-mix()` would be the
-obvious tool, but it is Chrome 111 — above this project's Chrome 87 floor — and
+obvious tool, but it is Chrome 111 (above this project's Chrome 87 floor) and
 Lightning CSS cannot down-level it when an operand is a variable.
 
 ### Which image is used
@@ -234,7 +234,7 @@ bun run test:e2e      # Playwright
 resolution matrix and asserts the things that matter: nothing overflows, no
 links survive, no external requests are made, the webfonts load, and nothing
 paints over the headline. It also writes
-`tests/e2e/.artifacts/contact-sheet.html` — every render on one page, which is
+`tests/e2e/.artifacts/contact-sheet.html`: every render on one page, which is
 the artifact to open when judging how the design *looks*, as opposed to
 whether it is correct.
 
@@ -258,7 +258,7 @@ bun run readme           # reads the releases through `gh`
 bun run readme:offline   # skip the release lookup, for editing the listing
 ```
 
-The header block — stable tag, tested-up-to, tags, contributors — comes from
+The header block (stable tag, tested-up-to, tags, contributors) comes from
 `package.json`, so nothing in readme.txt can disagree with the plugin header.
 `bun run readme` also enforces what WordPress.org enforces silently: five tags,
 a 150-byte short description, and a 10,000-byte file. Over that limit the
@@ -285,7 +285,7 @@ gh release edit 2026.8.1 --draft=false
 
 **Publishing the release deploys to WordPress.org; pushing a tag does not.**
 The changelog is read from the release notes, and at the moment a tag is pushed
-the release does not exist yet — a tag-triggered deploy would ship a readme whose
+the release does not exist yet, so a tag-triggered deploy would ship a readme whose
 changelog stopped at the previous version. The workflow refuses to publish when
 the tag and the plugin header disagree, so a release cut without running
 `version:sync` fails loudly instead of shipping a mislabelled build.
@@ -293,7 +293,7 @@ the tag and the plugin header disagree, so a release cut without running
 Notes for an unreleased version live in its **draft release**, and nowhere else.
 There is deliberately no file in this repository holding them: that would be a
 second copy needing to be cleared by hand after every release, and forgetting once
-would publish the previous version's notes as the next version's changelog —
+would publish the previous version's notes as the next version's changelog,
 silently, and plausibly enough that nobody would catch it. A draft is the same
 text in the same place it will eventually be published from.
 
@@ -315,7 +315,7 @@ To build an installable zip by hand:
 
 ### Versioning
 
-CalVer, `YYYY.M.MICRO` — month unpadded so it stays a valid version string,
+CalVer, `YYYY.M.MICRO`: month unpadded so it stays a valid version string,
 and `MICRO` counting releases within the month. This matches signage-kit and
 the other Screenly projects.
 

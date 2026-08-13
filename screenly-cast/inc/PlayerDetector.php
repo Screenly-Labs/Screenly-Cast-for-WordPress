@@ -36,8 +36,8 @@ final class PlayerDetector {
 	 * inference about a user agent string. Sent when "Send metadata" is enabled on
 	 * the asset.
 	 *
-	 * Only presence is read. The other headers in that family — screen name,
-	 * location name, latitude, longitude, tags — identify a customer's premises,
+	 * Only presence is read. The other headers in that family (screen name,
+	 * location name, latitude, longitude, tags) identify a customer's premises,
 	 * and this plugin has no question that needs them, so they are never read.
 	 */
 	private const SCREENLY_HEADERS = array(
@@ -54,7 +54,7 @@ final class PlayerDetector {
 	 *
 	 * Note which are absent. `us.zoom.zoompresence` and
 	 * `com.google.android.apps.notrod.webviewapp` are meeting-room devices, not
-	 * signage — a Zoom Room showing a calendar is not a screen that wants a signage
+	 * signage, a Zoom Room showing a calendar is not a screen that wants a signage
 	 * render, so they must not trigger this.
 	 */
 	private const SIGNAGE_PACKAGES = array(
@@ -101,7 +101,7 @@ final class PlayerDetector {
 	 * signage-kit rates the first two as medium confidence and bare QtWebEngine as
 	 * low, and is right to: for a classifier a medium-confidence guess is fine
 	 * because you can filter on confidence afterwards. This is not a classifier. It
-	 * changes what a person sees, and the failure is asymmetric — a player we miss
+	 * changes what a person sees, and the failure is asymmetric: a player we miss
 	 * still works with `?srly`, whereas someone browsing on their own television
 	 * getting a signage render has no recourse and no explanation.
 	 *
@@ -189,7 +189,7 @@ final class PlayerDetector {
 	 * Whether the user agent matches an engine shared with consumer devices.
 	 *
 	 * Public so a site that knows its own fleet can opt into it through the
-	 * `screenly_cast_is_signage_player` filter. Not consulted by default — see
+	 * `screenly_cast_is_signage_player` filter. Not consulted by default, see
 	 * AMBIGUOUS_UA_PATTERNS for why.
 	 *
 	 * @return bool

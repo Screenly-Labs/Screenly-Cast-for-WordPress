@@ -49,7 +49,7 @@ final class ContentFormatterTest extends WP_UnitTestCase {
 	/**
 	 * Links collapse to their label rather than vanishing.
 	 *
-	 * This is the plugin's documented behaviour — there is no interaction on a
+	 * This is the plugin's documented behaviour, there is no interaction on a
 	 * screen, so a link is just words. It works because `a` is absent from the
 	 * allowlist and kses keeps a disallowed tag's inner text.
 	 */
@@ -168,7 +168,7 @@ final class ContentFormatterTest extends WP_UnitTestCase {
 	 * Bare text at the top level is clamped like anything else.
 	 *
 	 * WordPress's kses removes a disallowed wrapper but keeps its text, so a table,
-	 * figure or div block arrives as character data with no element around it — and
+	 * figure or div block arrives as character data with no element around it, and
 	 * wpautop has already run, so nothing re-wraps it. Truncating that needs a
 	 * different code path from truncating an element, and the wrong one failed
 	 * silently: the full text survived and the budget was not enforced at all.
@@ -191,7 +191,7 @@ final class ContentFormatterTest extends WP_UnitTestCase {
 	 * A self-closing disallowed element must not swallow the rest of the post.
 	 *
 	 * The unclosed-opener fallback pattern let `[^>]*` consume the trailing slash,
-	 * so everything after a `<svg />` — which Custom HTML blocks do produce — was
+	 * so everything after a `<svg />` (which Custom HTML blocks do produce) was
 	 * discarded along with it.
 	 */
 	public function test_self_closing_element_does_not_eat_the_rest(): void {

@@ -35,7 +35,7 @@ final class ContentFormatter {
 	 * Smallest remaining budget worth truncating a block into.
 	 *
 	 * Without this, a block that crosses the budget with only a few characters
-	 * left becomes a stub like "<p>T…</p>" — visual noise that reads as a
+	 * left becomes a stub like "<p>T…</p>", visual noise that reads as a
 	 * rendering fault on a screen. Below this threshold the block is dropped
 	 * instead.
 	 */
@@ -51,7 +51,7 @@ final class ContentFormatter {
 	 * Two omissions are deliberate and load-bearing:
 	 *
 	 * - `a` is absent. kses removes a disallowed tag but keeps its inner text,
-	 *   so links flatten to their label — exactly the documented behaviour, and
+	 *   so links flatten to their label, exactly the documented behaviour, and
 	 *   more precise than the previous strip_tags() approach.
 	 * - `img` is absent. The featured image is composed separately by the
 	 *   template; inline images would break a fixed, unscrollable layout.
@@ -90,7 +90,7 @@ final class ContentFormatter {
 		 *
 		 * Expected to be a kses-shaped allowlist: `array<string, array<string,
 		 * mixed>>`. Documented as mixed because a filter is third-party code and
-		 * may return anything — the guard below is what makes that safe, and typing
+		 * may return anything, the guard below is what makes that safe, and typing
 		 * the parameter narrowly would let static analysis conclude the guard is
 		 * dead code and stop checking it.
 		 *
@@ -167,7 +167,7 @@ final class ContentFormatter {
 	 * Remove elements whose contents are code, along with those contents.
 	 *
 	 * This has to run *before* kses, and it is not optional. kses drops a
-	 * disallowed tag but keeps its inner text — which is exactly what makes links
+	 * disallowed tag but keeps its inner text, which is exactly what makes links
 	 * flatten to their label, and exactly wrong for a script or a style block,
 	 * whose bodies would otherwise be printed on the screen as words. An admin can
 	 * put a raw HTML block in a post, so this is reachable in practice.
@@ -185,8 +185,8 @@ final class ContentFormatter {
 			 * its "contents" once the tag itself is stripped.
 			 *
 			 * The (?<!/) is load-bearing: without it `[^>]*` happily consumes the
-			 * trailing slash of a self-closing `<svg />` — which a Custom HTML block
-			 * does produce — and `.*$` then eats every remaining character of the
+			 * trailing slash of a self-closing `<svg />` (which a Custom HTML block
+			 * does produce) and `.*$` then eats every remaining character of the
 			 * post. Properly closed elements are already handled by the pattern
 			 * above, so this only needs to catch a genuinely dangling opener.
 			 */
@@ -317,12 +317,12 @@ final class ContentFormatter {
 					 * Bare character data at the top level, which happens routinely:
 					 * kses removes a disallowed wrapper but keeps its text, so a
 					 * table, figure or div block collapses to a text node with no
-					 * element around it — wpautop has already run by then, so
+					 * element around it, wpautop has already run by then, so
 					 * nothing re-wraps it.
 					 *
 					 * The element branch above is wrong for these. A DOMText has no
 					 * children, so the loop does nothing, and appendChild() on a text
-					 * node neither throws nor changes its value — it silently does
+					 * node neither throws nor changes its value, it silently does
 					 * nothing, the full text survives, and the character budget is
 					 * not enforced at all. Assigning nodeValue is what actually
 					 * truncates it.

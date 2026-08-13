@@ -130,7 +130,7 @@ final class Settings {
 		wp_enqueue_media();
 
 		/*
-		 * Depends on media-editor, which is what provides wp.media — not on jquery,
+		 * Depends on media-editor, which is what provides wp.media, not on jquery,
 		 * which this script does not use. Declaring jquery loaded it on this screen
 		 * for nothing, and would have made the plugin look affected by WordPress
 		 * 7.1's jQuery UI upgrade when it is not.

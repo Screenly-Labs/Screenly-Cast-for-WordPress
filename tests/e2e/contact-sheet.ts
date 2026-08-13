@@ -7,7 +7,7 @@
  * what each case is probing.
  *
  * Runs as Playwright's global teardown, so it is built whether or not the
- * assertions passed — a failing run is exactly when you want to look at the pixels.
+ * assertions passed, a failing run is exactly when you want to look at the pixels.
  */
 
 import { readdir, writeFile } from 'node:fs/promises'
@@ -92,7 +92,7 @@ function renderPage(renders: Render[]): string {
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Screenly Cast — signage renders</title>
+<title>Screenly Cast: signage renders</title>
 <style>
   :root { color-scheme: dark; }
   body {
@@ -116,7 +116,7 @@ function renderPage(renders: Render[]): string {
 </style>
 </head>
 <body>
-<h1>Screenly Cast — signage renders</h1>
+<h1>Screenly Cast: signage renders</h1>
 <p class="meta">${renders.length} render(s) across ${byFixture.size} fixture(s). Assertions cover overflow, link flattening, external requests, webfont loading and the title tier; this sheet is for judging the design.</p>
 ${sections}
 ${orphans.length > 0 ? `<section><h2>Unrecognised renders</h2><p class="probes">${orphans.map((o) => escapeHtml(o.file)).join(', ')}</p></section>` : ''}

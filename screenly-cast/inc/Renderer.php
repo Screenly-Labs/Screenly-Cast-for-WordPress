@@ -16,7 +16,7 @@ defined( 'ABSPATH' ) || exit;
  *
  * Everything here is scoped to the current request. The plugin supplies its own
  * template and its own stylesheet and leaves the site's active theme completely
- * untouched — in contrast to the previous implementation, which called
+ * untouched, in contrast to the previous implementation, which called
  * switch_theme() on the whole site in response to an anonymous GET and switched
  * it back when a non-signage request arrived.
  */
@@ -56,8 +56,8 @@ final class Renderer {
 	 * Forget the current renderer.
 	 *
 	 * A request that is not signage must not report one, which matters because
-	 * this is static: within a single PHP process — a test run, or a CLI process
-	 * handling more than one query — a stale renderer would otherwise linger.
+	 * this is static: within a single PHP process (a test run, or a CLI process
+	 * handling more than one query), a stale renderer would otherwise linger.
 	 */
 	public static function clear(): void {
 		self::$current = null;
@@ -89,7 +89,7 @@ final class Renderer {
 		/*
 		 * Removed here rather than alongside the other head cleanup: with a block
 		 * theme, core adds this inside locate_block_template(), which runs as part
-		 * of the template_include chain — after template_redirect, where the rest
+		 * of the template_include chain, after template_redirect, where the rest
 		 * of the cleanup happens. Removing it any earlier silently does nothing,
 		 * and the document ends up with two viewport tags.
 		 *
@@ -108,8 +108,8 @@ final class Renderer {
 	 *
 	 * Since WordPress 6.4 the `wp_attachment_pages_enabled` option is off on new
 	 * installs, and redirect_canonical() sends an attachment URL straight to the
-	 * image file. That silently killed a documented feature of this plugin —
-	 * appending `?srly` to a media URL to cast it — because the request never
+	 * image file. That silently killed a documented feature of this plugin,
+	 * appending `?srly` to a media URL to cast it, because the request never
 	 * reaches a template at all; it just returns the raw file.
 	 *
 	 * Cancelling the canonical redirect for signage requests on attachments
@@ -310,7 +310,7 @@ final class Renderer {
 		 * The post in the loop, not the one on the request.
 		 *
 		 * SignageRequest only records a post_id for singular and attachment
-		 * requests, but the template runs the loop regardless — so `?srly` on the
+		 * requests, but the template runs the loop regardless, so `?srly` on the
 		 * blog index or a category archive, which is an obvious thing to point a
 		 * screen at, rendered the latest post's title, date and body while
 		 * silently dropping its image and classing the body text-only. The same
@@ -392,7 +392,7 @@ final class Renderer {
 	 *
 	 * An <img> with a srcset rather than a CSS background-image: it lets a player
 	 * on a constrained connection pick a smaller file, and it removes the inline
-	 * style attribute the previous theme hand-assembled — the source of one of
+	 * style attribute the previous theme hand-assembled, the source of one of
 	 * its escaping bugs.
 	 *
 	 * @return string Image markup, or an empty string when there is none.
@@ -431,7 +431,7 @@ final class Renderer {
 		/*
 		 * A plain cast rather than enumerating falsy values. The enumeration this
 		 * replaces missed the string '0', which is exactly what WordPress hands
-		 * back from get_option() for a saved-off boolean — so a site wiring this
+		 * back from get_option() for a saved-off boolean, so a site wiring this
 		 * filter to an option got the opposite of what it asked for.
 		 */
 		return (bool) $filtered;

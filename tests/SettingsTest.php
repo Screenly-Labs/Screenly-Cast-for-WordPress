@@ -39,7 +39,7 @@ final class SettingsTest extends WP_UnitTestCase {
 	 * Unchecking the box turns detection off.
 	 *
 	 * An unchecked checkbox is omitted from the POST body entirely, which is the
-	 * classic way for a boolean setting to become impossible to turn off — the
+	 * classic way for a boolean setting to become impossible to turn off: the
 	 * handler sees no value and leaves the old one in place. That failure is real
 	 * for a hand-rolled form handler, but not for the Settings API: options.php
 	 * iterates the options *registered* to the page rather than the keys that were
@@ -76,7 +76,7 @@ final class SettingsTest extends WP_UnitTestCase {
 	 * Uninstall.php lists the option names as literal strings, and has to: during
 	 * uninstall the plugin is never bootstrapped, so its autoloader is not
 	 * registered and the constants below cannot be read. That is a real constraint
-	 * rather than an oversight, but it does mean the list is a copy — and a copy
+	 * rather than an oversight, but it does mean the list is a copy, and a copy
 	 * with nothing checking it against the original is a leak waiting for the next
 	 * option to be added. This is that check.
 	 *

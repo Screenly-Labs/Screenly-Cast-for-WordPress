@@ -26,7 +26,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * The plugin version.
  *
- * Written by `bun run version:sync` from package.json — do not edit by hand. It
+ * Written by `bun run version:sync` from package.json, do not edit by hand. It
  * cache-busts the enqueued signage assets, which matters on players that cache
  * aggressively. Until this rewrite the constant shipped as the literal string
  * 'VERSION_PLACEHOLDER', because nothing ever substituted it, so asset
@@ -47,7 +47,7 @@ define( 'SRLY_QUERY_VAR', 'srly' );
  * PSR-4 autoloader for the ScreenlyCast namespace.
  *
  * The plugin has no runtime Composer dependencies, so it ships no vendor
- * directory — Composer is a development-only tool here. This keeps the shipped
+ * directory, Composer is a development-only tool here. This keeps the shipped
  * plugin exactly equal to the files in this directory.
  */
 spl_autoload_register(

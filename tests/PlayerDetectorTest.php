@@ -222,7 +222,7 @@ final class PlayerDetectorTest extends WP_UnitTestCase {
 	 *
 	 * Serving a crawler a stripped, noindex render in place of a real page is both an
 	 * SEO problem and a form of cloaking, so the bot check runs before everything
-	 * else — including before the Screenly headers, which a crawler would not send
+	 * else, including before the Screenly headers, which a crawler would not send
 	 * but which must not be able to override this either.
 	 *
 	 * @dataProvider bot_user_agents

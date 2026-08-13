@@ -68,7 +68,7 @@ final class SignageRequest {
 	/**
 	 * Whether the signage query variable is present on the main query.
 	 *
-	 * The variable is valueless by design — `?srly` is enough — so presence is
+	 * The variable is valueless by design (`?srly` is enough), so presence is
 	 * what matters rather than the value. That is why this uses
 	 * array_key_exists() rather than get_query_var(), which cannot distinguish
 	 * an absent variable from an empty one.

@@ -23,7 +23,7 @@
 	<!--
 	  Warnings are deliberately NOT suppressed. The previous ruleset set
 	  warning-severity to 0 and ignore_warnings_on_exit to 1, which silenced the
-	  entire class of findings WPCS reports as warnings — including output
+	  entire class of findings WPCS reports as warnings, including output
 	  escaping and i18n. Several real escaping bugs in this plugin survived
 	  precisely because of that, so the suppression is gone.
 	-->
@@ -92,8 +92,8 @@
 	  It belongs to WordPress, so it cannot carry our prefix.
 
 	  Note what this does NOT do: the sniff stays fully active on screenly-cast/,
-	  where the point of it — a plugin must not put unprefixed names in the global
-	  namespace — actually applies. Nothing the plugin ships is exempted.
+	  where the point of it (a plugin must not put unprefixed names in the global
+	  namespace) actually applies. Nothing the plugin ships is exempted.
 	-->
 	<rule ref="WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound">
 		<exclude-pattern>tests/*</exclude-pattern>

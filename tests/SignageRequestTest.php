@@ -18,7 +18,7 @@ use WP_UnitTestCase;
 final class SignageRequestTest extends WP_UnitTestCase {
 
 	/**
-	 * A bare `srly`, with no `=` and no value, is enough — the parameter is
+	 * A bare `srly`, with no `=` and no value, is enough, the parameter is
 	 * valueless by design, which is why detection tests for the key's presence
 	 * rather than reading its value.
 	 *

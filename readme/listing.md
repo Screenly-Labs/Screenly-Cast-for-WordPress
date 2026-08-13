@@ -25,7 +25,7 @@ Appending `?srly` still works, and still wins, which is what you want for
 previewing on your own machine.
 
 A signage render is the title, the date, a short body, and the featured image if
-there is one. Everything that assumes a person with a mouse is removed —
+there is one. Everything that assumes a person with a mouse is removed:
 navigation, sidebars, comments, links, sharing buttons.
 
 **Your theme is never touched.** A signage request renders through the plugin's
@@ -88,7 +88,7 @@ The parameter needs no value. `?srly` on its own is enough.
 
 From their request: the `X-Screenly-*` metadata headers a Screenly player can
 send, the Android package name several other players identify themselves with,
-and user agent tokens that name a player and nothing else — Screenly, Anthias,
+and user agent tokens that name a player and nothing else: Screenly, Anthias,
 BrightSign, IAdea, Slideshow and Unifi Connect.
 
 Detection is deliberately cautious, because the two kinds of mistake are not
@@ -100,7 +100,7 @@ So a signal has to name a player and nothing else. Notably absent: LG webOS and
 Samsung Tizen, which run signage displays *and* every LG and Samsung smart TV,
 and QtWebEngine, which signage players embed *and* so does any desktop Qt
 application. Search engines, signed-in users and meeting-room devices are
-excluded too — a room calendar is not signage.
+excluded too: a room calendar is not signage.
 
 A detected player is sent to the same URL with `?srly` added rather than being
 shown signage on the original URL, so that a page cache or CDN never has to serve
@@ -139,7 +139,7 @@ a screen.
 ### Which image is used?
 
 The featured image if the post has one. Failing that, the first image in the post
-content that comes from your media library — so adding a picture with the "Add
+content that comes from your media library, so adding a picture with the "Add
 Media" button is enough, and you do not have to set a featured image as well.
 Images hotlinked from other sites are ignored.
 

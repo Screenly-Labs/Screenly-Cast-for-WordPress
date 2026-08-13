@@ -17,7 +17,7 @@ defined( 'ABSPATH' ) || exit;
  * Versions up to 1.0.5 responded to a `?srly` request by calling switch_theme()
  * on the entire site, recording the previous theme in an option, and switching
  * back when a request arrived without the parameter. A site could therefore be
- * sitting on the bundled theme right now — for every visitor — with a copied
+ * sitting on the bundled theme right now, for every visitor, with a copied
  * theme directory in wp-content/themes and several stale options.
  *
  * This runs once per version, from the admin or WP-CLI only. It never runs on a
@@ -71,7 +71,7 @@ final class Migration {
 		 * admin-ajax.php fires admin_init before it looks at `action` or any nonce,
 		 * and it is reachable without being logged in. Hooking this on admin_init
 		 * therefore exposed switch_theme(), delete_theme() and
-		 * flush_rewrite_rules() to an anonymous POST — the very shape of bug this
+		 * flush_rewrite_rules() to an anonymous POST, the very shape of bug this
 		 * rewrite exists to remove, reintroduced through a different door.
 		 *
 		 * Cron is excluded for the same reason: it has no user, so nothing here can
@@ -241,8 +241,8 @@ final class Migration {
 		 * admin_init, that replaced the administrator's first page load after
 		 * upgrading with an FTP prompt for a tidy-up they never asked for.
 		 *
-		 * Leaving the old directory in place is harmless — it is inactive, and the
-		 * theme it contains is no longer registered — so this is best-effort by
+		 * Leaving the old directory in place is harmless: it is inactive, and the
+		 * theme it contains is no longer registered, so this is best-effort by
 		 * design rather than something worth interrupting anyone for.
 		 */
 		if ( 'direct' !== get_filesystem_method() ) {

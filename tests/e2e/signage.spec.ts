@@ -126,7 +126,7 @@ async function assertSignageInvariants(page: Page, key: string, diagnostics: Dia
    * Nothing may paint over the headline.
    *
    * The scrim is a ::after on the stage, and a pseudo-element hit-tests as its
-   * originating element — so if the scrim ends up above the content, the topmost
+   * originating element, so if the scrim ends up above the content, the topmost
    * element at the title's centre becomes .srly-stage instead of the title. That
    * is precisely the regression this catches: the text was still the right colour
    * and the right size, and simply invisible underneath a gradient.

@@ -59,7 +59,7 @@ final class MigrationTest extends WP_UnitTestCase {
 	 * Pretend the site is stuck on the bundled theme.
 	 *
 	 * The theme's files no longer ship, so the stuck state is simulated at the
-	 * option level — which is exactly the state the old switch_theme() left.
+	 * option level, which is exactly the state the old switch_theme() left.
 	 */
 	private function pretend_stuck_on_bundled_theme(): void {
 		update_option( 'stylesheet', 'screenly-cast' );
@@ -72,7 +72,7 @@ final class MigrationTest extends WP_UnitTestCase {
 	 * This is the guard that matters most. admin-ajax.php fires admin_init before
 	 * it inspects `action` or any nonce and is reachable unauthenticated, so
 	 * without a capability check an anonymous POST could have triggered
-	 * switch_theme() — reintroducing, by another route, the exact bug this whole
+	 * switch_theme(), reintroducing, by another route, the exact bug this whole
 	 * rewrite removes.
 	 */
 	public function test_does_nothing_without_capability(): void {
@@ -101,7 +101,7 @@ final class MigrationTest extends WP_UnitTestCase {
 	/**
 	 * The version is recorded before the directory removal is attempted.
 	 *
-	 * Removal is the one step that can fail without returning — delete_theme()
+	 * Removal is the one step that can fail without returning: delete_theme()
 	 * hands off to request_filesystem_credentials() on hosts that need FTP
 	 * details, which exits mid-request. Stamping afterwards meant such a host
 	 * would repeat the entire migration on every admin page load, forever.
@@ -193,7 +193,7 @@ final class MigrationTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * An unmatched logo URL is kept rather than silently dropped — the site owner
+	 * An unmatched logo URL is kept rather than silently dropped, the site owner
 	 * configured it deliberately.
 	 */
 	public function test_unmatched_logo_url_is_preserved(): void {

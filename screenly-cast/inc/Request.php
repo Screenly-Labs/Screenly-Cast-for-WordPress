@@ -16,7 +16,7 @@ defined( 'ABSPATH' ) || exit;
  *
  * This is the only place in the plugin that touches $_SERVER, deliberately. Every
  * value in there is attacker-controlled and typed mixed, so each read needs the
- * same three steps in the same order — narrow, unslash, sanitise — and having one
+ * same three steps in the same order (narrow, unslash, sanitise), and having one
  * implementation means there is one thing to review rather than one per call site.
  */
 final class Request {

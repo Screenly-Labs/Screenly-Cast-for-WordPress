@@ -162,7 +162,7 @@ jobs:
     runs-on: ubuntu-24.04
     # Plugin Check summarises its findings as a comment on the pull request, which
     # is the whole point of running it here rather than reading a log. Posting that
-    # needs pull-requests: write, and the workflow-level grant is contents: read —
+    # needs pull-requests: write, and the workflow-level grant is contents: read,
     # so the action was failing at the last step with "Resource not accessible by
     # integration" and annotating every run with a warning.
     #

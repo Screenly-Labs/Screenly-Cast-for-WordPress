@@ -2,7 +2,7 @@
  * Media picker for the Screenly Cast logo setting.
  *
  * Hand-written and shipped as-is: it needs no bundling, so it deliberately does
- * not go through the signage build. Plain DOM rather than jQuery — wp.media is
+ * not go through the signage build. Plain DOM rather than jQuery, wp.media is
  * the only dependency, provided by wp_enqueue_media().
  *
  * @package ScreenlyCast

@@ -4,7 +4,7 @@ name: Release
 # Publishing the GitHub release is the trigger, not pushing the tag.
 #
 # The changelog in readme.txt is generated from the release notes, and at the moment
-# a tag is pushed the release for it does not exist yet — so a tag-triggered deploy
+# a tag is pushed the release for it does not exist yet, so a tag-triggered deploy
 # would ship a readme whose changelog stopped at the previous version. Releases are
 # cut by hand anyway (`gh release create <tag> --notes-file readme/next-release.md`),
 # so this waits for the step that produces the notes rather than the step before it.
@@ -92,7 +92,7 @@ jobs:
 
       # The zip that was actually deployed, attached to the release that triggered
       # this run. Release assets do not expire, which is what makes the build durable
-      # — artifacts top out at GitHub's 90-day ceiling for public repositories, and
+      #, artifacts top out at GitHub's 90-day ceiling for public repositories, and
       # there is no indefinite retention at any value.
       - name: Attach the built zip to the release
         env:

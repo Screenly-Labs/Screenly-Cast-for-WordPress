@@ -89,7 +89,7 @@ export const FIXTURES: Fixture[] = [
     key: 'unicode',
     title: 'Åpningstider · 営業時間 · ساعات العمل',
     type: 'post',
-    content: '<p>Café Åbo — 日本語のテキスト, emoji 🎉🎊, and naïve façade détails.</p>',
+    content: '<p>Café Åbo: 日本語のテキスト, emoji 🎉🎊, and naïve façade détails.</p>',
     probes: 'Multi-byte text and emoji must not be mangled by the clamp or the fitter.'
   },
   {

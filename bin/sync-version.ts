@@ -18,7 +18,7 @@
  * whose git tag and plugin header disagree.
  *
  * The constant matters more than it looks. It previously shipped as the literal
- * string `VERSION_PLACEHOLDER` — nothing ever substituted it — so every release
+ * string `VERSION_PLACEHOLDER` (nothing ever substituted it), so every release
  * enqueued its CSS and JS under the same version and signage players happily
  * served stale assets after an update.
  */

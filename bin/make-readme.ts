@@ -25,7 +25,7 @@
  * workflow's trigger. The changelog for version X lives in X's GitHub release, which
  * does not exist at the moment X's tag is pushed. So the WordPress.org deploy runs on
  * `release: published`, not on the tag push, and the notes for a version not yet
- * released live in its draft release — never in a file here. See the comment on the
+ * released live in its draft release, never in a file here. See the comment on the
  * draft filter in main() for why that distinction is load-bearing.
  */
 
@@ -60,7 +60,7 @@ const SHORT_DESCRIPTION_LIMIT = 150
 /** WordPress.org indexes at most five tags and ignores the rest. */
 const MAX_TAGS = 5
 
-/** CalVer only. Legacy `v1.x` tags come from history.md — see the note there. */
+/** CalVer only. Legacy `v1.x` tags come from history.md, see the note there. */
 const CALVER_TAG = /^\d{4}\.(?:[1-9]|1[0-2])\.\d+$/
 
 /** Marks the paragraph WordPress.org shows as the update prompt. */
@@ -205,7 +205,7 @@ type ConvertOptions = {
  *
  * WordPress.org's readme format is *almost* markdown: bold, italic, links, lists and
  * inline code are all shared. Only headings and code blocks differ, so this converts
- * those two and passes everything else through — which is what makes the markdown
+ * those two and passes everything else through, which is what makes the markdown
  * source readable on its own rather than a template full of markers.
  *
  * Tables and h4 have no readme.txt equivalent. Rather than dropping them silently,
@@ -281,7 +281,7 @@ function toReadmeMarkup(markdown: string, options: ConvertOptions): string {
         /*
          * The entry's own title, dropped rather than bolded. next-release.md needs an
          * h1 to be a valid markdown document, and that same file is what
-         * `gh release create --notes-file` publishes — so the h1 arrives here whether
+         * `gh release create --notes-file` publishes, so the h1 arrives here whether
          * the notes came from the file or from the release. Either way the version
          * heading has already been emitted above it.
          */
@@ -317,7 +317,7 @@ function tidy(text: string): string {
  * Split the listing into its title, short description and body.
  *
  * The h1 is the plugin name and the paragraph under it is the short description,
- * which is how they read in the markdown too — no separate metadata to keep in step
+ * which is how they read in the markdown too, no separate metadata to keep in step
  * with the prose.
  */
 function parseListing(markdown: string): { name: string; short: string; body: string } {
@@ -410,7 +410,7 @@ function splitNotes(markdown: string): { notice: string | null; body: string } {
   /*
    * The notice is lifted out rather than merely located. It is shown in its own
    * section, so leaving it in the body would print the same paragraph twice on the
-   * listing — once as the update prompt and again as the head of the changelog entry.
+   * listing, once as the update prompt and again as the head of the changelog entry.
    */
   return {
     notice: tidy(paragraph) === '' ? null : tidy(paragraph),
@@ -427,13 +427,13 @@ function renderEntries(entries: Entry[]): string[] {
  *
  * readme.txt and changelog.txt want different lengths of the same thing. Release
  * notes for a substantial release run to several thousand bytes of Added/Fixed/Changed
- * detail, and the whole listing has 10,000 bytes to live in — so readme.txt takes the
+ * detail, and the whole listing has 10,000 bytes to live in, so readme.txt takes the
  * summary the notes already open with and changelog.txt keeps the detail.
  *
  * This is why the lead paragraph of a release is worth writing properly: it is what
  * most people read, on the listing's Changelog tab.
  *
- * Entries with no sections at all — the pre-CalVer ones, which are flat bullet lists —
+ * Entries with no sections at all (the pre-CalVer ones, which are flat bullet lists)
  * are already short, so they are their own lead.
  */
 function leadOf(body: string): string {
@@ -475,16 +475,16 @@ function main(): number {
    * Published releases, plus the draft for the version being prepared.
    *
    * The draft is the whole point. Notes for an unreleased version have to live
-   * somewhere before they are published, and the obvious-looking answer — a file in
-   * the repository — is a second copy that has to be cleared by hand after every
+   * somewhere before they are published, and the obvious-looking answer, a file in
+   * the repository, is a second copy that has to be cleared by hand after every
    * release. Forget once and the previous version's notes are published as the next
    * version's changelog, silently and plausibly. GitHub already models "written, not
    * yet published" as a draft, so there is one copy throughout: draft it, edit it,
    * publish it.
    *
    * Drafts are only visible to accounts with push access. A pull request from a fork
-   * therefore renders the listing without the pending entry, which is correct — it
-   * renders what is public — and never fails for want of a file.
+   * therefore renders the listing without the pending entry, which is correct, it
+   * renders what is public, and never fails for want of a file.
    */
   const usable = releases.filter((release) => {
     if (release.prerelease || !CALVER_TAG.test(release.tag_name)) {
@@ -538,7 +538,7 @@ function main(): number {
   /*
    * Take changelog entries newest-first while they fit. WordPress.org's own guidance
    * is to keep readme.txt small and move the history to changelog.txt, which it links
-   * automatically — so the truncation here is the recommended shape, not a
+   * automatically, so the truncation here is the recommended shape, not a
    * compromise. It is still stated in the output rather than left to be inferred.
    */
   const pointer = 'The full detail for every release is in changelog.txt.'
@@ -581,10 +581,10 @@ function main(): number {
   writeFileSync(CHANGELOG_OUT, `${tidy(changelog)}\n`)
 
   console.log(
-    `✓ ${relative(ROOT, README_OUT)} — ${Buffer.byteLength(readme)} bytes, ` +
+    `✓ ${relative(ROOT, README_OUT)}: ${Buffer.byteLength(readme)} bytes, ` +
       `${kept.length} of ${entries.length} changelog entries`
   )
-  console.log(`✓ ${relative(ROOT, CHANGELOG_OUT)} — ${entries.length} entries`)
+  console.log(`✓ ${relative(ROOT, CHANGELOG_OUT)}: ${entries.length} entries`)
   if (!notice) {
     console.warn(
       `⚠ No upgrade notice: add a "${UPGRADE_NOTICE_MARKER}" line to the notes for ${pkg.version}.`

@@ -6,7 +6,7 @@
  * and the manifest the spec reads always agree.
  *
  * Content is written to files and handed to wp-cli by path rather than passed as
- * a command-line argument — the fixtures contain quotes, angle brackets and
+ * a command-line argument, the fixtures contain quotes, angle brackets and
  * multi-byte text, none of which survive shell quoting reliably.
  */
 
@@ -82,7 +82,7 @@ async function deletePreviouslySeeded(): Promise<void> {
 async function seed(): Promise<void> {
   await mkdir(CONTENT_DIR, { recursive: true })
 
-  // The sample photograph is generated, not committed, so make it if absent —
+  // The sample photograph is generated, not committed, so make it if absent,
   // otherwise a clean checkout (or CI) has nothing to import.
   await makeSampleImage()
 
@@ -140,7 +140,7 @@ async function seed(): Promise<void> {
     }
 
     if (!Number.isInteger(id) || id <= 0) {
-      throw new Error(`Failed to seed "${fixture.key}" — wp-cli returned no id`)
+      throw new Error(`Failed to seed "${fixture.key}": wp-cli returned no id`)
     }
     if (!url.startsWith('http')) {
       throw new Error(`Failed to resolve a permalink for "${fixture.key}": ${url}`)
@@ -150,7 +150,7 @@ async function seed(): Promise<void> {
     console.log(`✓ ${fixture.key} (#${id})`)
   }
 
-  // A brand logo, so the corner chrome is exercised too — including the RTL check,
+  // A brand logo, so the corner chrome is exercised too, including the RTL check,
   // which asserts the logo swaps sides via the stylesheet's logical properties.
   const logoId = await wp([
     'media',
