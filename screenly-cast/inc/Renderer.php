@@ -305,7 +305,23 @@ final class Renderer {
 		}
 
 		$this->resolved_image_id = 0;
-		$post_id                 = $this->request->post_id;
+
+		/*
+		 * The post in the loop, not the one on the request.
+		 *
+		 * SignageRequest only records a post_id for singular and attachment
+		 * requests, but the template runs the loop regardless — so `?srly` on the
+		 * blog index or a category archive, which is an obvious thing to point a
+		 * screen at, rendered the latest post's title, date and body while
+		 * silently dropping its image and classing the body text-only. The same
+		 * post via its permalink got the full photographic composition.
+		 */
+		$post_id = $this->request->post_id;
+
+		if ( null === $post_id ) {
+			$in_loop = get_the_ID();
+			$post_id = is_int( $in_loop ) && $in_loop > 0 ? $in_loop : null;
+		}
 
 		if ( null === $post_id ) {
 			return 0;
@@ -412,7 +428,13 @@ final class Renderer {
 		 */
 		$filtered = apply_filters( 'screenly_cast_show_date', true );
 
-		return false !== $filtered && 0 !== $filtered && '' !== $filtered && null !== $filtered;
+		/*
+		 * A plain cast rather than enumerating falsy values. The enumeration this
+		 * replaces missed the string '0', which is exactly what WordPress hands
+		 * back from get_option() for a saved-off boolean — so a site wiring this
+		 * filter to an option got the opposite of what it asked for.
+		 */
+		return (bool) $filtered;
 	}
 
 	/**

@@ -177,11 +177,30 @@ async function assertSignageInvariants(page: Page, key: string, diagnostics: Dia
   const fontLoaded = await page.evaluate(() => document.fonts.check('1rem "Bricolage Grotesque"'))
   expect(fontLoaded, `${key}: display webfont should be loaded`).toBe(true)
 
-  // Exactly one title tier, so the fitter's decision is unambiguous.
+  /*
+   * Exactly one title tier, on the same element as the composition classes.
+   *
+   * Asserting the element matters as much as the count: the stylesheet has
+   * `.srly--text-only.srly--title-xl` compound rules, and while the tier lived on
+   * <html> and srly--text-only on <body>, nothing ever matched them and the
+   * text-only size bumps were dead. Reading from body is what makes that visible.
+   */
   const tiers = await page.evaluate(() =>
-    Array.from(document.documentElement.classList).filter((name) => name.startsWith('srly--title-'))
+    Array.from(document.body.classList).filter((name) => name.startsWith('srly--title-'))
   )
-  expect(tiers, `${key}: exactly one title tier`).toHaveLength(1)
+  expect(tiers, `${key}: exactly one title tier, on body`).toHaveLength(1)
+
+  // The compound text-only rules must be reachable, not merely present.
+  const tierIsUsable = await page.evaluate(() => {
+    const composition = ['srly--text-only', 'srly--has-figure'].filter((name) =>
+      document.body.classList.contains(name)
+    )
+    const tier = Array.from(document.body.classList).filter((name) =>
+      name.startsWith('srly--title-')
+    )
+    return composition.length === 1 && tier.length === 1
+  })
+  expect(tierIsUsable, `${key}: tier and composition classes must share an element`).toBe(true)
 }
 
 async function shoot(page: Page, key: string, resolution: string): Promise<void> {

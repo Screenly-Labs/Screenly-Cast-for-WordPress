@@ -146,7 +146,9 @@ final class PlayerDetector {
 		 */
 		$filtered = apply_filters( 'screenly_cast_is_signage_player', $detected );
 
-		return false !== $filtered && null !== $filtered && 0 !== $filtered && '' !== $filtered;
+		// A plain cast; enumerating falsy values missed the string '0', which is what
+		// get_option() returns for a saved-off boolean.
+		return (bool) $filtered;
 	}
 
 	/**

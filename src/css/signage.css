@@ -333,6 +333,16 @@
   text-wrap: balance;
 }
 
+/*
+ * Applied by the fitter, and only after every tier has been tried. A word that
+ * still does not fit at the smallest size is broken rather than clipped. See the
+ * comment on titleTooWide() in src/js/signage.ts for why this is not simply always
+ * on.
+ */
+.srly-entry__title--break {
+  overflow-wrap: break-word;
+}
+
 .srly--title-xl {
   --srly-title-size: 7rem;
 }

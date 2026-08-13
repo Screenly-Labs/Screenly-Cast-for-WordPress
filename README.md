@@ -1,5 +1,8 @@
 # Screenly Cast for WordPress
 
+[![CI](https://github.com/Screenly-Labs/Screenly-Cast-for-WordPress/actions/workflows/ci.yml/badge.svg)](https://github.com/Screenly-Labs/Screenly-Cast-for-WordPress/actions/workflows/ci.yml)
+[![OpenGrep](https://github.com/Screenly-Labs/Screenly-Cast-for-WordPress/actions/workflows/opengrep.yml/badge.svg)](https://github.com/Screenly-Labs/Screenly-Cast-for-WordPress/actions/workflows/opengrep.yml)
+
 Render posts, pages and image media in a layout built for digital signage.
 Append `?srly` to any URL.
 

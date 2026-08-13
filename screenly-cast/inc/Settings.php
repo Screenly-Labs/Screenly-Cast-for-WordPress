@@ -282,6 +282,22 @@ final class Settings {
 		$id = is_scalar( $value ) ? absint( $value ) : 0;
 
 		if ( 0 === $id || ! wp_attachment_is_image( $id ) ) {
+			/*
+			 * Clear the legacy URL fallback too.
+			 *
+			 * Migration writes screenly_cast_logo_url when it cannot match an old
+			 * logo URL to anything in the media library, and logo_markup() falls
+			 * back to it. That option is not registered and the screen has no
+			 * control for it, so on such an install "Remove logo" set the id to 0
+			 * and the old logo reappeared on the very next render, with no way to
+			 * get rid of it from the admin at all.
+			 *
+			 * Done here rather than on update_option_* because that hook only fires
+			 * when the value actually changes, and the id is already 0 in precisely
+			 * the state this needs to fix.
+			 */
+			delete_option( self::LOGO_URL_OPTION );
+
 			return 0;
 		}
 

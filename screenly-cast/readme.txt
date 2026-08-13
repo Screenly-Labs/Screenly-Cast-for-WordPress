@@ -143,79 +143,14 @@ Signage rendering no longer changes your site's theme. If an earlier version lef
 
 = 2026.8.0 =
 
-A rewrite. The plugin no longer installs or activates a theme at all.
-
-**Breaking**
+A rewrite. The plugin no longer installs or activates a theme at all, and a signage
+request no longer changes your site's active theme — which any anonymous visitor
+could previously trigger for every visitor.
 
 * Requires WordPress 6.8 and PHP 8.2. Tested up to WordPress 7.1.
-* The bundled Screenly Cast theme is no longer installed into `wp-content/themes`. Rendering is handled by the plugin. If you had customised that copied theme directory, those edits are not carried over.
-* The unused `screenly_cast` post type and `screenly_cast_category` taxonomy have been removed. Existing posts of that type are left in the database untouched, but nothing renders them.
-* Versioning moves to CalVer (`YYYY.M.MICRO`) to match Screenly's other projects.
-* Licence changed to AGPLv3.
+* Signage players are recognised automatically, so a screen can be pointed at an ordinary page URL.
+* A post with no featured image now uses the first image in its content.
+* Fixes asset cache-busting, which never worked; the logo setting, which could not work; casting media URLs, broken by WordPress 6.4; and the theme copy that ran on every page load.
+* Licence changed to AGPL-3.0-only. Versioning moves to CalVer.
 
-**Security**
-
-* A signage request no longer switches the site's active theme. Previously any anonymous visitor requesting a `?srly` URL changed the active theme for every visitor, and a site could be left serving the bundled theme to everyone. This is also the cause of the 2017 report that the plugin "cleared CSS customizations": Customizer CSS is stored per theme, so switching the theme took the site's custom CSS out of play.
-
-**Fixed**
-
-* Asset cache-busting never worked: the version constant shipped as the literal placeholder text, so browsers and players kept serving stale CSS and JS after an update.
-* The theme was copied into `wp-content/themes` on *every page load*, attempting a recursive directory copy on each request.
-* Theme switching and option deletion ran during ordinary front-end page views, with a redirect that could loop.
-* Activation, deactivation and uninstall hooks were never registered, so plugin options were never cleaned up. There is now an uninstall routine.
-* The logo setting could never work: it was registered under one option name, read under another, from a file that was never loaded, against a mismatched settings group. It is now a working media picker under Settings → Screenly Cast, and an existing logo value is migrated.
-* Requirement notices were double-escaped and displayed HTML entities as literal text.
-* Casting an image media URL works again. WordPress 6.4 disabled attachment pages by default, which had silently broken it.
-* PHP 8 warnings from the short-link helper, and invalid markup on attachment renders.
-
-**Added**
-
-* Verified against the WordPress 7.1 release candidate. None of 7.1's breaking changes apply: the plugin adds nothing to the block editor, uses no `@wordpress/components`, adds no toolbar items, and does no image processing. Its one admin script no longer declares a jQuery dependency it never used, so the jQuery UI upgrade is a non-event too.
-* Signage players are recognised automatically and sent to the signage view, so a screen can be pointed at an ordinary page URL with no `?srly` to add. Detection uses the `X-Screenly-*` headers, the Android package name and the player user agent tokens; crawlers, signed-in users and meeting-room devices are excluded. Turn it off under Settings → Screenly Cast, or adjust it with the `screenly_cast_is_signage_player` filter.
-* A post with no featured image now uses the first image in its content, so adding a picture with the "Add Media" button is enough. Reported in 2018 as "image with text overlay does not appear to work".
-* The date can be hidden with the `screenly_cast_show_date` filter, and the colours and type scale can be overridden through the design's CSS custom properties. Both requested in 2018.
-
-**Changed**
-
-* Content shaping uses an explicit tag allowlist rather than `strip_tags`, and both the allowlist and the character budget are filterable.
-* Content is fitted to the actual viewport, measured in the browser, rather than trimmed one word at a time against a stale measurement.
-* Webfonts are bundled with the plugin. The Google Fonts CDN request is gone, as is the third-party QR code API.
-* Signage renders are marked noindex, and the theme's stylesheets, fonts, emoji scripts, oEmbed discovery and speculation rules are all kept out of them.
-
-= 1.0.5 =
-* Fix: Make failing unit tests pass
-* Fix: Update handling of the `?srly` query parameter
-* Fix: Screenly Cast theme not being applied when using the `srly` query parameter
-
-= 1.0.4 =
-* Fix: Move build artifacts to separate dist/ directory
-* Fix: Improve build script to create correct WordPress plugin structure
-* Fix: Update documentation for build process and plugin installation
-
-= 1.0.3 =
-* Fix: Correct directory structure for WordPress.org SVN deployment
-* Fix: Ensure proper handling of plugin assets
-* Fix: Streamline build process for cleaner releases
-
-= 1.0.2 =
-* Fix: Remove all development files and directories from release package
-* Fix: Improve .distignore patterns to match actual directory structure
-* Fix: Clean up root directory files from WordPress.org deployment
-
-= 1.0.1 =
-* Fix: Remove development files from release package
-* Fix: Clean up files included in WordPress.org deployment
-
-= 1.0.0 =
-* Major: Complete rewrite of the plugin
-* Modern PHP 7.4+ features and type safety
-* Improved code organization and maintainability
-* Updated minimum WordPress version to 6.2.4
-* Better error handling and version compatibility checks
-* Added comprehensive test suite with unit and integration tests
-* Added theme installation and management functionality
-* Added proper WordPress coding standards compliance
-* Added proper query handling for Screenly Cast content
-
-= 0.1.19 =
-* Added PHPUnit test files for WordPress
+Older releases, and the full detail for this one, are in changelog.txt.

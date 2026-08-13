@@ -179,9 +179,18 @@ final class ContentFormatter {
 		$patterns = array(
 			// Paired elements, contents included.
 			'#<(script|style|template|noscript|svg|math|iframe|object|canvas)\b[^>]*>.*?</\1\s*>#is',
-			// An unclosed opener would otherwise leave the rest of the document as
-			// its "contents" once the tag itself is stripped.
-			'#<(script|style|template|noscript|svg|math|iframe|object|canvas)\b[^>]*>.*$#is',
+
+			/*
+			 * An unclosed opener would otherwise leave the rest of the document as
+			 * its "contents" once the tag itself is stripped.
+			 *
+			 * The (?<!/) is load-bearing: without it `[^>]*` happily consumes the
+			 * trailing slash of a self-closing `<svg />` — which a Custom HTML block
+			 * does produce — and `.*$` then eats every remaining character of the
+			 * post. Properly closed elements are already handled by the pattern
+			 * above, so this only needs to catch a genuinely dangling opener.
+			 */
+			'#<(script|style|template|noscript|svg|math|iframe|object|canvas)\b[^>]*(?<!/)>.*$#is',
 		);
 
 		foreach ( $patterns as $pattern ) {
@@ -297,11 +306,30 @@ final class ContentFormatter {
 			} elseif ( $used + $length > $budget ) {
 				$truncated = self::truncate( $node->textContent, $remaining );
 
-				while ( $node->firstChild instanceof \DOMNode ) {
-					$node->removeChild( $node->firstChild );
+				if ( $node instanceof \DOMElement ) {
+					while ( $node->firstChild instanceof \DOMNode ) {
+						$node->removeChild( $node->firstChild );
+					}
+
+					$node->appendChild( $dom->createTextNode( $truncated ) );
+				} else {
+					/*
+					 * Bare character data at the top level, which happens routinely:
+					 * kses removes a disallowed wrapper but keeps its text, so a
+					 * table, figure or div block collapses to a text node with no
+					 * element around it — wpautop has already run by then, so
+					 * nothing re-wraps it.
+					 *
+					 * The element branch above is wrong for these. A DOMText has no
+					 * children, so the loop does nothing, and appendChild() on a text
+					 * node neither throws nor changes its value — it silently does
+					 * nothing, the full text survives, and the character budget is
+					 * not enforced at all. Assigning nodeValue is what actually
+					 * truncates it.
+					 */
+					$node->nodeValue = $truncated;
 				}
 
-				$node->appendChild( $dom->createTextNode( $truncated ) );
 				$used = $budget;
 			} else {
 				$used += $length;

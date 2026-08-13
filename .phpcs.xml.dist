@@ -70,6 +70,7 @@
 				<element value="documentElement"/>
 				<element value="firstChild"/>
 				<element value="nextSibling"/>
+				<element value="nodeValue"/>
 				<element value="ownerDocument"/>
 				<element value="textContent"/>
 			</property>

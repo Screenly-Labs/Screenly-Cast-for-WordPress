@@ -67,6 +67,26 @@ final class Migration {
 			return;
 		}
 
+		/*
+		 * admin-ajax.php fires admin_init before it looks at `action` or any nonce,
+		 * and it is reachable without being logged in. Hooking this on admin_init
+		 * therefore exposed switch_theme(), delete_theme() and
+		 * flush_rewrite_rules() to an anonymous POST — the very shape of bug this
+		 * rewrite exists to remove, reintroduced through a different door.
+		 *
+		 * Cron is excluded for the same reason: it has no user, so nothing here can
+		 * be attributed or safely surfaced to anyone.
+		 */
+		if ( wp_doing_ajax() || wp_doing_cron() ) {
+			return;
+		}
+
+		// A real administrator, or WP-CLI, which has no user but is already trusted.
+		$is_cli = defined( 'WP_CLI' ) && WP_CLI;
+		if ( ! $is_cli && ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
 		if ( ! self::acquire_lock() ) {
 			return;
 		}
@@ -74,14 +94,22 @@ final class Migration {
 		try {
 			self::restore_active_theme();
 			self::migrate_logo_option();
-			self::remove_legacy_theme_directory();
 			self::delete_legacy_options();
 
 			// The removed custom post type registered rewrite rules that are now
 			// stale.
 			flush_rewrite_rules();
 
+			/*
+			 * Recorded BEFORE the directory removal, which is the only step that can
+			 * fail in a way that never returns. delete_theme() can hand off to
+			 * request_filesystem_credentials(), and stamping afterwards meant a
+			 * host that needs credentials would repeat the whole migration on every
+			 * admin request, forever.
+			 */
 			update_option( self::VERSION_OPTION, SRLY_VERSION );
+
+			self::remove_legacy_theme_directory();
 		} finally {
 			delete_transient( self::LOCK_TRANSIENT );
 		}
@@ -204,8 +232,23 @@ final class Migration {
 			require_once ABSPATH . 'wp-admin/includes/theme.php';
 		}
 
-		// delete_theme() handles filesystem credentials properly, which the
-		// hand-rolled recursive unlink it replaces did not.
+		/*
+		 * Only when PHP can write to the filesystem itself.
+		 *
+		 * delete_theme() begins with request_filesystem_credentials(), which on an
+		 * FTP or SSH-backed host does not return: it buffers a credentials form,
+		 * requires admin-header.php, echoes the page and exits. Running from
+		 * admin_init, that replaced the administrator's first page load after
+		 * upgrading with an FTP prompt for a tidy-up they never asked for.
+		 *
+		 * Leaving the old directory in place is harmless — it is inactive, and the
+		 * theme it contains is no longer registered — so this is best-effort by
+		 * design rather than something worth interrupting anyone for.
+		 */
+		if ( 'direct' !== get_filesystem_method() ) {
+			return;
+		}
+
 		delete_theme( self::LEGACY_THEME );
 	}
 

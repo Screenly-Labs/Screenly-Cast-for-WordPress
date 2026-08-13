@@ -43,13 +43,22 @@ function tierForLength(length: number): number {
   return TITLE_TIERS.length - 1
 }
 
-function applyTier(root: HTMLElement, tier: number): void {
+/**
+ * Put the tier class on the element that already carries the composition classes.
+ *
+ * It must be <body>, not <html>. The stylesheet has rules like
+ * `.srly--text-only.srly--title-xl`, and `srly--text-only` is emitted on <body> by
+ * body_class(). With the tier on <html> no single element ever carried both, so
+ * every one of those compound rules silently matched nothing and text-only renders
+ * quietly fell back to the generic tier sizes.
+ */
+function applyTier(target: HTMLElement, tier: number): void {
   for (const name of TITLE_TIERS) {
-    root.classList.remove(name)
+    target.classList.remove(name)
   }
   const name = TITLE_TIERS[tier]
   if (name !== undefined) {
-    root.classList.add(name)
+    target.classList.add(name)
   }
 }
 
@@ -120,17 +129,18 @@ function fitContent(content: HTMLElement, overflows: () => boolean): void {
 
 function fit(): void {
   const root = document.documentElement
+  const body = document.body
   const entry = document.querySelector('.srly-entry')
   const title = document.querySelector('.srly-entry__title')
 
-  if (!(entry instanceof HTMLElement)) {
+  if (!(entry instanceof HTMLElement) || !body) {
     return
   }
 
   const titleLength = title instanceof HTMLElement ? (title.textContent ?? '').trim().length : 0
 
   let tier = tierForLength(titleLength)
-  applyTier(root, tier)
+  applyTier(body, tier)
 
   /*
    * Two deliberate choices here, each of which was a bug first.
@@ -149,10 +159,51 @@ function fit(): void {
   const available = (): number => document.documentElement.clientHeight
   const overflows = (): boolean => entry.offsetHeight > available() + SLACK
 
+  /*
+   * Width is a separate question from height, and it has to be asked of the title
+   * itself.
+   *
+   * A tier is chosen from the title's character count, which knows nothing about
+   * the aspect ratio of the screen. On a portrait player the fluid root is driven
+   * by the long edge, so a 1080x1920 screen sets 31.5px — and a single word at the
+   * largest tier is then 283px tall and over 1100px wide on a 1080px-wide screen.
+   * It does not fit and it never could. The entry is a shrink-to-fit grid item, and
+   * shrink-to-fit floors at min-content — no min-width or max-width changes that —
+   * so the composition simply grew past the viewport and the stage's overflow:hidden
+   * clipped the headline. Silently: the document itself never scrolled, so nothing
+   * about the page looked wrong from the outside.
+   *
+   * Shrinking the type is therefore the only real remedy, which makes this the
+   * fitter's job rather than the stylesheet's.
+   *
+   * Compared against the viewport, not against the title's own box: the entry grows
+   * to fit the title, so the title is never overflowing its own container and
+   * scrollWidth on it always reads clean. The overflow only exists relative to the
+   * screen.
+   */
+  const tooWide = (): boolean => entry.offsetWidth > document.documentElement.clientWidth + SLACK
+
   // Step the title down before touching the author's words.
-  while (overflows() && tier < TITLE_TIERS.length - 1) {
+  while ((overflows() || tooWide()) && tier < TITLE_TIERS.length - 1) {
     tier += 1
-    applyTier(root, tier)
+    applyTier(body, tier)
+  }
+
+  /*
+   * Last resort, and only once the tiers are exhausted: let the word break.
+   *
+   * A 40-character unbroken word does not fit on a narrow screen at any tier, and
+   * of the two remaining outcomes — a broken word or a clipped one — the broken one
+   * is legible. Deliberately not in the base stylesheet: with break-word always on,
+   * the loop above would never see an overflow to correct, so every over-wide title
+   * would be hyphen-free mid-word garbage instead of being made smaller first.
+   *
+   * Note this is checked, not merged into the loop condition, because `overflows()`
+   * below drives content trimming. A permanently-true width predicate there would
+   * have the fitter delete every paragraph in the post trying to fix the title.
+   */
+  if (tooWide() && title instanceof HTMLElement) {
+    title.classList.add('srly-entry__title--break')
   }
 
   const content = document.querySelector('[data-srly-fit]')

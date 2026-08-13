@@ -33,6 +33,13 @@ final class MigrationTest extends WP_UnitTestCase {
 
 		$this->real_theme = get_stylesheet();
 
+		/*
+		 * The repair switches themes and deletes options, so it requires an
+		 * administrator. Without a current user it correctly refuses to run, which
+		 * is asserted separately below.
+		 */
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
 		delete_option( Migration::VERSION_OPTION );
 		delete_option( Migration::NOTICE_OPTION );
 		delete_transient( 'screenly_cast_migrating' );
@@ -57,6 +64,52 @@ final class MigrationTest extends WP_UnitTestCase {
 	private function pretend_stuck_on_bundled_theme(): void {
 		update_option( 'stylesheet', 'screenly-cast' );
 		update_option( 'template', 'screenly-cast' );
+	}
+
+	/**
+	 * Without an administrator, the repair does nothing at all.
+	 *
+	 * This is the guard that matters most. admin-ajax.php fires admin_init before
+	 * it inspects `action` or any nonce and is reachable unauthenticated, so
+	 * without a capability check an anonymous POST could have triggered
+	 * switch_theme() — reintroducing, by another route, the exact bug this whole
+	 * rewrite removes.
+	 */
+	public function test_does_nothing_without_capability(): void {
+		wp_set_current_user( 0 );
+		update_option( 'screenly_previous_theme', $this->real_theme );
+		$this->pretend_stuck_on_bundled_theme();
+
+		Migration::maybe_run();
+
+		$this->assertSame( 'screenly-cast', get_stylesheet(), 'The theme must not change.' );
+		$this->assertFalse( get_option( Migration::VERSION_OPTION, false ) );
+	}
+
+	/**
+	 * A subscriber is not an administrator.
+	 */
+	public function test_does_nothing_for_an_unprivileged_user(): void {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
+		$this->pretend_stuck_on_bundled_theme();
+
+		Migration::maybe_run();
+
+		$this->assertSame( 'screenly-cast', get_stylesheet() );
+	}
+
+	/**
+	 * The version is recorded before the directory removal is attempted.
+	 *
+	 * Removal is the one step that can fail without returning — delete_theme()
+	 * hands off to request_filesystem_credentials() on hosts that need FTP
+	 * details, which exits mid-request. Stamping afterwards meant such a host
+	 * would repeat the entire migration on every admin page load, forever.
+	 */
+	public function test_version_is_recorded_even_when_the_directory_cannot_be_removed(): void {
+		Migration::maybe_run();
+
+		$this->assertSame( SRLY_VERSION, get_option( Migration::VERSION_OPTION ) );
 	}
 
 	/**

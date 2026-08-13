@@ -165,6 +165,46 @@ final class ContentFormatterTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Bare text at the top level is clamped like anything else.
+	 *
+	 * WordPress's kses removes a disallowed wrapper but keeps its text, so a table,
+	 * figure or div block arrives as character data with no element around it — and
+	 * wpautop has already run, so nothing re-wraps it. Truncating that needs a
+	 * different code path from truncating an element, and the wrong one failed
+	 * silently: the full text survived and the budget was not enforced at all.
+	 */
+	public function test_unwrapped_text_is_clamped(): void {
+		$this->set_budget( 80 );
+
+		$long   = str_repeat( 'Cell text from a table block. ', 20 );
+		$result = $this->formatter->format( '<table><tr><td>' . $long . '</td></tr></table>' );
+
+		$this->assertLessThan(
+			200,
+			strlen( wp_strip_all_tags( $result ) ),
+			'Unwrapped text must be clamped, not passed through whole.'
+		);
+		$this->assertStringContainsString( 'Cell text', $result );
+	}
+
+	/**
+	 * A self-closing disallowed element must not swallow the rest of the post.
+	 *
+	 * The unclosed-opener fallback pattern let `[^>]*` consume the trailing slash,
+	 * so everything after a `<svg />` — which Custom HTML blocks do produce — was
+	 * discarded along with it.
+	 */
+	public function test_self_closing_element_does_not_eat_the_rest(): void {
+		$result = $this->formatter->format(
+			'<p>Before</p><svg /><p>After the self-closing tag</p>'
+		);
+
+		$this->assertStringContainsString( 'Before', $result );
+		$this->assertStringContainsString( 'After the self-closing tag', $result );
+		$this->assertStringNotContainsString( '<svg', $result );
+	}
+
+	/**
 	 * Nested lists are a case a naive regex split would mangle.
 	 */
 	public function test_nested_lists_are_preserved(): void {
