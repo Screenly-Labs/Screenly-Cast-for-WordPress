@@ -1,0 +1,53 @@
+version: 2
+updates:
+  - package-ecosystem: "bun"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps-dev"
+    groups:
+      production-minor-patch:
+        dependency-type: "production"
+        update-types: ["minor", "patch"]
+      development:
+        dependency-type: "development"
+
+  - package-ecosystem: "composer"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps-dev"
+    groups:
+      development:
+        dependency-type: "development"
+    ignore:
+      # PHPUnit is pinned to 9.x on purpose: yoast/phpunit-polyfills supports
+      # ^7.5 || ^8 || ^9 || ^11 || ^12 but deliberately skips 10, and WordPress
+      # core itself still pins polyfills ^1.1. A major bump here silently breaks
+      # WP_UnitTestCase, so it is a decision rather than a routine update.
+      - dependency-name: "phpunit/phpunit"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "yoast/phpunit-polyfills"
+        update-types: ["version-update:semver-major"]
+      # WPCS 3.x requires php_codesniffer ^3.13.5 and does not support PHPCS 4.
+      - dependency-name: "squizlabs/php_codesniffer"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    commit-message:
+      prefix: "ci"
+    groups:
+      github-actions:
+        patterns: ["*"]

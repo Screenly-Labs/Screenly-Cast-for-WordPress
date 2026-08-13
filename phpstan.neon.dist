@@ -1,0 +1,28 @@
+includes:
+  - vendor/szepeviktor/phpstan-wordpress/extension.neon
+  - vendor/phpstan/phpstan-strict-rules/rules.neon
+  - vendor/phpstan/phpstan-deprecation-rules/rules.neon
+
+parameters:
+  # The highest level PHPStan offers. Combined with phpstan-strict-rules this
+  # rejects, among other things, loose comparisons, implicit mixed, unions that
+  # are never narrowed, and unreachable branches.
+  level: max
+
+  paths:
+    - screenly-cast/inc
+    - screenly-cast/screenly-cast.php
+    - screenly-cast/uninstall.php
+    - screenly-cast/templates
+
+  bootstrapFiles:
+    - tests/phpstan-bootstrap.php
+
+  # PHPDoc types are trusted, so a docblock that contradicts reality is an error
+  # rather than something quietly ignored. This defaults to true; it is stated
+  # explicitly because setting it false is a common way to make level max "pass".
+  treatPhpDocTypesAsCertain: true
+
+  # An ignore that no longer matches anything is itself a failure, so suppressions
+  # cannot rot into place.
+  reportUnmatchedIgnoredErrors: true

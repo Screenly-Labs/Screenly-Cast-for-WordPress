@@ -1,6 +1,0 @@
-FROM wordpress:latest
-
-RUN apt-get update -y
-
-COPY custom.ini $PHP_INI_DIR/conf.d/
-WORKDIR /var/www/html

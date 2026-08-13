@@ -1,0 +1,73 @@
+---
+name: OpenGrep
+
+# Its own workflow rather than a job in ci.yml, so the README badge reflects the
+# scan specifically. GitHub publishes badges per workflow, not per job, so a badge
+# pointing at ci.yml would go red for an unrelated PHPUnit cell and green while the
+# scan was skipped.
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+  # Rules move independently of this repository, so a scan that passed at merge
+  # time can legitimately start failing. Weekly, matching Dependabot's day.
+  schedule:
+    - cron: '0 6 * * 1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: opengrep-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Pinned: an unpinned scanner turns a third-party release into an unreviewed
+  # change to our merge gate.
+  OPENGREP_VERSION: v1.27.0
+  OPENGREP_SHA256: 9d47d7de3f22ec5a93b25af9126648191e3d3b5d759dd4f699006138724719b3
+  # Pinned too, for the same reason — and because rules changing underneath makes
+  # a red build impossible to attribute.
+  RULES_REF: f1d2b56
+
+jobs:
+  scan:
+    name: Static analysis
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      # Downloaded directly rather than via an action: OpenGrep ships a standalone
+      # manylinux binary, so there is no third-party action in the trust path.
+      - name: Install OpenGrep
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "$OPENGREP_VERSION" \
+            --repo opengrep/opengrep \
+            --pattern 'opengrep_manylinux_x86' \
+            --output ./opengrep
+          echo "$OPENGREP_SHA256  ./opengrep" | sha256sum --check --strict
+          chmod +x ./opengrep
+          ./opengrep --version
+
+      - name: Fetch rules
+        run: |
+          git clone --filter=blob:none --no-checkout \
+            https://github.com/opengrep/opengrep-rules.git rules
+          git -C rules checkout --quiet "$RULES_REF"
+          git -C rules rev-parse --short HEAD
+
+      # Scanning the authored plugin and the signage sources. The built assets under
+      # screenly-cast/assets/dist are generated and minified, so findings there
+      # would be unactionable noise pointing at machine output.
+      - name: Scan
+        run: |
+          ./opengrep scan \
+            --config rules/php \
+            --config rules/javascript \
+            --config rules/typescript \
+            --exclude='assets/dist' \
+            --error \
+            screenly-cast src

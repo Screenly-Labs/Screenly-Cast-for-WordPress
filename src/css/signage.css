@@ -1,0 +1,519 @@
+/* =========================================================================
+   Screenly Cast — the signage stylesheet.
+
+   Design direction: a content-responsive poster. The composition inverts on what
+   the entry actually has. With a featured image it is a full-bleed photograph
+   with a scrim and the text set low; without one the type becomes the image.
+   That inversion is the signature element — the same template reads either as a
+   photographic poster or a typographic one, and which it is says something true
+   about the post rather than decorating it.
+
+   The medium drives the rest: read at three metres, unattended, fixed dwell, no
+   interaction, and correct from a 480x800 Raspberry Pi Touch Display up to 4K in
+   both orientations. There are therefore no pixel breakpoints — the fluid root
+   from the signage-kit preset is orientation-neutral — only orientation queries
+   where a composition genuinely needs one.
+   ========================================================================= */
+
+/* Tailwind must be imported by the consuming repo, before the preset: Tailwind
+   resolves this specifier relative to us, and the kit's directory has no
+   tailwindcss. */
+@import "tailwindcss";
+
+/* Brings the degraded-mode kill-switch, the signage reset, the fluid root and the
+   shared brand/z-index tokens. */
+@import "@screenly-labs/signage-kit/styles/preset.css";
+
+/* -------------------------------------------------------------------------
+   Webfonts.
+
+   Declared here rather than importing the kit's styles/fonts.css, which points
+   every src at an absolute `/static/fonts/...`. That path is correct for a
+   standalone app served at the document root, but a WordPress plugin is served
+   from /wp-content/plugins/screenly-cast/, so every one of those faces would
+   404. These URLs are relative to the built stylesheet instead, which resolves
+   correctly no matter where WordPress itself is installed — including
+   subdirectory installs.
+
+   The woff2 files are vendored by syncFonts() in build.ts, so the kit still owns
+   which @fontsource versions we ship.
+
+   FOLLOW-UP: signage-kit PR #29 adds a `fontPath` option to processCss() that
+   rewrites that prefix. Once it is released and the pinned tag in package.json
+   moves, this whole block should be deleted in favour of
+   `@import '@screenly-labs/signage-kit/styles/fonts.css'` plus
+   `processCss(css, { fontPath: 'fonts/' })` in build.ts — at which point the kit is
+   once again the only place that decides which font files ship.
+   https://github.com/Screenly-Labs/signage-kit/pull/29
+   ------------------------------------------------------------------------- */
+
+@font-face {
+  font-family: "Bricolage Grotesque";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url("fonts/bricolage-grotesque-latin-standard-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Hanken Grotesk";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("fonts/hanken-grotesk-latin-wght-normal.woff2") format("woff2");
+}
+
+/* Space Mono is not variable, so its weights are separate files. The kit's manifest
+   vendors both; declaring both means neither ships unused. */
+@font-face {
+  font-family: "Space Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("fonts/space-mono-latin-400-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Space Mono";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("fonts/space-mono-latin-700-normal.woff2") format("woff2");
+}
+
+@theme {
+  /* A near-black with a trace of blue rather than #000: emissive panels band on
+     pure black, and a slight cast reads as deliberate at distance. */
+  --color-ground: #0b0d12;
+  /* Derived from the channel triplet in :root — see the note there. */
+  --color-ground-deep: rgb(var(--srly-ground-deep-rgb));
+
+  /* Warm off-white rather than #fff — less glare in a dim room. */
+  --color-ink: #f4f1ec;
+  --color-ink-soft: #d9d5ce;
+  --color-ink-dim: #949aa6;
+
+  /* The shared Screenly brand token, used for exactly one mark: the rule beside
+     the eyebrow. It is the only chromatic accent in the design. */
+  --color-brand: #6b4eff;
+
+  --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Space Mono", ui-monospace, "SFMono-Regular", monospace;
+}
+
+@layer base {
+  /* The preset drives the whole type scale from these three stops; children are
+     sized in rem so they follow. Raised slightly above the preset defaults
+     because signage is read further away than the average app. */
+  :root {
+    --root-min: 16px;
+    --root-gain: 1.05;
+    --root-max: 60px;
+
+    /*
+     * The deep ground as a channel triplet, so alpha can be applied per gradient
+     * stop: `rgb(var(--srly-ground-deep-rgb) / 0.72)`.
+     *
+     * This is the single definition of that colour; --color-ground-deep above is
+     * built from it. The scrim previously repeated the literal `rgb(5 7 10 / …)`
+     * nine times, which meant overriding the token did nothing to the scrim — the
+     * exact drift tokens exist to prevent.
+     *
+     * A triplet rather than color-mix() because color-mix() is Chrome 111, above
+     * this project's Chrome 87 floor, and Lightning CSS cannot down-level it when
+     * an operand is a var() it cannot resolve at build time. `rgb()` with a var
+     * and a slash-alpha works at the floor.
+     *
+     * NB these live here and not in @theme: Tailwind silently drops custom
+     * properties in @theme that sit in no namespace it recognises, which is a trap
+     * signage-kit's preset documents having fallen into.
+     */
+    --srly-ground-deep-rgb: 5 7 10;
+
+    /* Legibility over a photographic ground; one definition, one place to tune. */
+    --srly-text-shadow: 0 0.012em 0.06em rgb(0 0 0 / 0.55);
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-ground);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-synthesis: none;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Stage
+   ------------------------------------------------------------------------- */
+
+/*
+ * A fixed height, not a minimum.
+ *
+ * With min-height the stage grows to whatever its content needs, so an overlong
+ * entry silently made the stage taller than the screen — and any "does this fit?"
+ * check measured against a container that had already stretched to accommodate
+ * it, which is circular and always answers yes. Pinning the stage to the viewport
+ * makes overflow detectable, and with overflow:hidden it also makes it impossible
+ * for the document itself to scroll.
+ */
+.srly-stage {
+  position: relative;
+  display: grid;
+  height: 100vh;
+  /* biome-ignore lint/suspicious/noDuplicateProperties: 100vh above is the deliberate fallback for engines below the svh floor. */
+  height: 100svh;
+  overflow: hidden;
+}
+
+/* -------------------------------------------------------------------------
+   Figure — full bleed, behind everything
+   ------------------------------------------------------------------------- */
+
+.srly-figure {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-index-backdrop);
+  margin: 0;
+  background: var(--color-ground-deep);
+}
+
+.srly-figure__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/*
+ * The scrim carries the text, so it is weighted towards the edge the text sits
+ * on — but it never reaches zero opacity, even at the far edge.
+ *
+ * An earlier version faded to fully transparent at the top and looked good over
+ * a dark photograph. Over a bright one — a washed-out sky, a pale interior, which
+ * is a large share of real signage imagery — the headline became unreadable. A
+ * plugin cannot choose the photograph, so the floor is deliberate: legibility at
+ * three metres is worth more than fidelity to someone's picture.
+ */
+.srly--has-figure .srly-stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  /*
+   * The backdrop level, NOT one above it.
+   *
+   * At backdrop+1 this tied with --z-index-content, and because a ::after paints
+   * after its element's children, the scrim landed on top of the text it exists to
+   * sit under — dimming the headline to near-invisibility over any image. This is
+   * exactly the failure the shared z-index scale in signage-kit's preset was
+   * introduced to prevent, and it still catches you if you do arithmetic on it.
+   *
+   * Sharing the figure's level is correct: the pseudo-element is generated after
+   * the figure, so it paints above the photograph and below the content.
+   */
+  z-index: var(--z-index-backdrop);
+  background: linear-gradient(
+    to top,
+    rgb(var(--srly-ground-deep-rgb) / 0.92) 0%,
+    rgb(var(--srly-ground-deep-rgb) / 0.72) 28%,
+    rgb(var(--srly-ground-deep-rgb) / 0.3) 60%,
+    rgb(var(--srly-ground-deep-rgb) / 0.1) 100%
+  );
+}
+
+@media (orientation: portrait) {
+  .srly--has-figure .srly-stage::after {
+    background: linear-gradient(
+      to top,
+      rgb(var(--srly-ground-deep-rgb) / 0.94) 0%,
+      rgb(var(--srly-ground-deep-rgb) / 0.82) 40%,
+      rgb(var(--srly-ground-deep-rgb) / 0.42) 70%,
+      rgb(var(--srly-ground-deep-rgb) / 0.12) 100%
+    );
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Entry
+
+   Base rules first, then the per-composition variants. Defining a variant
+   before its base leaves lower-specificity rules trailing higher-specificity
+   ones, which is a fragile ordering even when nothing currently conflicts.
+   ------------------------------------------------------------------------- */
+
+.srly-entry {
+  position: relative;
+  z-index: var(--z-index-content);
+  justify-self: start;
+  max-width: 44rem;
+  padding: 6vmin 7vmin;
+}
+
+/* With a photograph the text sits low, letting the image hold the upper frame.
+   Without one the type fills the space instead. */
+.srly--has-figure .srly-entry {
+  align-self: end;
+  /* Belt and braces over a photographic ground, at the values signage-kit
+     settled on for its shared .text-legible helper. */
+  text-shadow: var(--srly-text-shadow);
+}
+
+/*
+ * Centred, not top-aligned.
+ *
+ * Top-aligning a short text-only entry left the lower half of a 16:9 screen
+ * empty, which reads as a rendering fault rather than as space. Centring makes the
+ * type the whole composition, and it degrades better: a long title grows in both
+ * directions instead of running towards the bottom edge.
+ */
+.srly--text-only .srly-entry {
+  align-self: center;
+  max-width: 52rem;
+}
+
+/* -------------------------------------------------------------------------
+   Eyebrow — the date for posts, the site name otherwise.
+
+   Which of the two appears is information, not ornament: a post has a
+   meaningful date and a page does not, so a page names its source instead.
+   ------------------------------------------------------------------------- */
+
+.srly-entry__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.9em;
+  margin-bottom: 1.5em;
+  color: var(--color-ink-dim);
+  font-family: var(--font-mono);
+  font-size: 0.92rem;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.srly-entry__eyebrow::before {
+  content: "";
+  flex: none;
+  width: 2.4em;
+  height: 0.3em;
+  background: var(--color-brand);
+}
+
+/*
+ * The eyebrow sits highest in the composition, which over a photograph is where
+ * the scrim is weakest. The dim grey that reads as a quiet label against the flat
+ * ground disappears against a bright sky, so it steps up a level when there is an
+ * image behind it.
+ */
+.srly--has-figure .srly-entry__eyebrow {
+  color: var(--color-ink-soft);
+}
+
+/* -------------------------------------------------------------------------
+   Title — tiered rather than continuously scaled.
+
+   The tier is chosen from the title's own length by the fitter, which then steps
+   down if the composition still overflows. Tiers rather than a continuous shrink
+   because discrete poster sizes read as a decision, whereas an arbitrary
+   in-between size reads like a browser zoom. Sizes are in rem, so each tier is
+   still fully fluid across the resolution matrix.
+
+   The author's capitalisation is left alone: forcing uppercase would mangle
+   proper nouns and acronyms in real CMS content.
+   ------------------------------------------------------------------------- */
+
+.srly-entry__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--srly-title-size, 4.2rem);
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -0.021em;
+  text-wrap: balance;
+}
+
+/*
+ * Applied by the fitter, and only after every tier has been tried. A word that
+ * still does not fit at the smallest size is broken rather than clipped. See the
+ * comment on titleTooWide() in src/js/signage.ts for why this is not simply always
+ * on.
+ */
+.srly-entry__title--break {
+  overflow-wrap: break-word;
+}
+
+.srly--title-xl {
+  --srly-title-size: 7rem;
+}
+
+.srly--title-lg {
+  --srly-title-size: 5.4rem;
+}
+
+.srly--title-md {
+  --srly-title-size: 4rem;
+}
+
+.srly--title-sm {
+  --srly-title-size: 3rem;
+}
+
+/* Text-only renders are the case where the type has to do the image's job. */
+.srly--text-only.srly--title-xl {
+  --srly-title-size: 9rem;
+}
+
+.srly--text-only.srly--title-lg {
+  --srly-title-size: 6.8rem;
+}
+
+/* -------------------------------------------------------------------------
+   Content
+   ------------------------------------------------------------------------- */
+
+.srly-entry__content {
+  margin-top: 1.4em;
+  color: var(--color-ink-soft);
+  font-size: 1.45rem;
+  line-height: 1.45;
+  /* A short measure matters more at three metres than it does on a desk. */
+  max-width: 34ch;
+}
+
+.srly-entry__content > * + * {
+  margin-top: 0.65em;
+}
+
+.srly-entry__content h2,
+.srly-entry__content h3,
+.srly-entry__content h4,
+.srly-entry__content h5,
+.srly-entry__content h6 {
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.srly-entry__content strong,
+.srly-entry__content b {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+.srly-entry__content blockquote {
+  border-inline-start: 0.18em solid var(--color-brand);
+  padding-inline-start: 0.9em;
+  color: var(--color-ink);
+  font-style: italic;
+}
+
+.srly-entry__content ul,
+.srly-entry__content ol {
+  padding-inline-start: 1.4em;
+}
+
+.srly-entry__content ul {
+  list-style: none;
+  padding-inline-start: 0;
+}
+
+.srly-entry__content ul li {
+  padding-inline-start: 1.3em;
+  position: relative;
+}
+
+.srly-entry__content ul li::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0.58em;
+  width: 0.42em;
+  height: 0.42em;
+  background: var(--color-brand);
+}
+
+.srly-entry__content code,
+.srly-entry__content pre {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+}
+
+.srly-entry__content pre {
+  white-space: pre-wrap;
+}
+
+@media (orientation: portrait) {
+  .srly-entry {
+    max-width: none;
+    padding: 8vmin 7vmin;
+  }
+
+  .srly-entry__content {
+    max-width: 30ch;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Logo
+   ------------------------------------------------------------------------- */
+
+.srly-logo {
+  position: absolute;
+  z-index: var(--z-index-chrome);
+  inset-block-end: 5vmin;
+  inset-inline-end: 5vmin;
+}
+
+.srly-logo__image {
+  display: block;
+  width: auto;
+  max-width: 22vw;
+  max-height: 7vmin;
+}
+
+/* -------------------------------------------------------------------------
+   Motion — one orchestrated entrance, and nothing else.
+   ------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  .srly-entry {
+    animation: srly-rise 720ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  @keyframes srly-rise {
+    from {
+      opacity: 0;
+      transform: translateY(1.1rem);
+    }
+
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+/*
+ * Degraded-mode resting state.
+ *
+ * The shared kill-switch in the preset stops animation on html.legacy, but the
+ * signage-kit README is explicit that any element which animates in from
+ * opacity:0 needs its own resting rule in the app — otherwise a below-floor
+ * player is left holding the animation's start frame and shows a blank screen.
+ * That is precisely the case here.
+ *
+ * !important is required, not incidental: this has to beat the @layer'd and
+ * media-query'd animation rule above regardless of source order, and it is how
+ * the kit's own degraded.css kill-switch is written for the same reason.
+ */
+html.legacy .srly-entry {
+  /* biome-ignore lint/complexity/noImportantStyles: kill-switch must win the cascade. */
+  opacity: 1 !important;
+  /* biome-ignore lint/complexity/noImportantStyles: kill-switch must win the cascade. */
+  transform: none !important;
+  /* biome-ignore lint/complexity/noImportantStyles: kill-switch must win the cascade. */
+  animation: none !important;
+}
