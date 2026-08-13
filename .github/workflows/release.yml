@@ -1,20 +1,27 @@
 ---
 name: Release
 
+# Publishing the GitHub release is the trigger, not pushing the tag.
+#
+# The changelog in readme.txt is generated from the release notes, and at the moment
+# a tag is pushed the release for it does not exist yet — so a tag-triggered deploy
+# would ship a readme whose changelog stopped at the previous version. Releases are
+# cut by hand anyway (`gh release create <tag> --notes-file readme/next-release.md`),
+# so this waits for the step that produces the notes rather than the step before it.
+#
+# Consequence worth knowing: pushing a tag alone no longer deploys anything.
 on:
-  push:
-    tags:
-      # CalVer, matching signage-kit: YYYY.M.MICRO, optionally with a prerelease
-      # suffix. Note this is not the old `vX.Y.Z` scheme.
-      - '[0-9][0-9][0-9][0-9].*'
+  release:
+    types: [published]
 
+# Write, only because the built zip is attached back to the release.
 permissions:
   contents: write
 
-# Publishing to SVN is not idempotent, and GitHub has been observed delivering a
-# tag push event twice. Serialise per tag so a duplicate waits rather than racing.
+# Publishing to SVN is not idempotent, and GitHub has been observed delivering an
+# event twice. Serialise per tag so a duplicate waits rather than racing.
 concurrency:
-  group: release-${{ github.ref_name }}
+  group: release-${{ github.event.release.tag_name }}
   cancel-in-progress: false
 
 env:
@@ -24,26 +31,33 @@ jobs:
   release:
     name: Release to WordPress.org
     runs-on: ubuntu-24.04
+    # A prerelease is for testing the pipeline and for handing someone a zip. It is
+    # not a WordPress.org release, and WordPress.org has no concept of one.
+    if: ${{ !github.event.release.prerelease }}
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ github.event.release.tag_name }}
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: ${{ env.BUN_VERSION }}
       - run: bun install --frozen-lockfile
 
-      # A tag pushed without bumping package.json used to deploy silently, which
+      # A release cut without bumping package.json used to deploy silently, which
       # is invisible from the WordPress.org side. Refuse instead.
       - name: Verify tag matches package.json version
+        env:
+          TAG: ${{ github.event.release.tag_name }}
         run: |
           pkg=$(bun --print "require('./package.json').version")
-          if [ "$GITHUB_REF_NAME" != "$pkg" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match package.json version $pkg"
+          if [ "$TAG" != "$pkg" ]; then
+            echo "::error::Tag $TAG does not match package.json version $pkg"
             exit 1
           fi
           echo "Tag and package.json agree on $pkg"
 
-      # And that the plugin header + readme.txt stable tag agree with it.
-      - name: Verify plugin header and stable tag
+      # And that the plugin header agrees with it.
+      - name: Verify plugin header
         run: bun run version:check
 
       - name: Build signage assets
@@ -51,6 +65,18 @@ jobs:
 
       - name: Committed assets match a fresh build
         run: git diff --exit-code -- screenly-cast/assets/dist
+
+      # This is the step the trigger exists for: the changelog is read from the
+      # published releases, which now includes the one being deployed.
+      - name: Render readme.txt and changelog.txt
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bun run readme
+
+      # The deployed listing is what WordPress.org shows, so put it in the log where
+      # it can be read after the fact rather than only inferred from the SVN diff.
+      - name: Show the generated readme.txt
+        run: cat screenly-cast/readme.txt
 
       - name: Build distributable
         run: ./bin/build.sh
@@ -64,17 +90,12 @@ jobs:
           BUILD_DIR: build/screenly-cast
           ASSETS_DIR: .wordpress-org
 
-      # The zip that was actually deployed, kept so a release can attach it without
-      # rebuilding. Releases are cut by hand with `gh release create <tag>
-      # dist/screenly-cast.zip` rather than by a third-party action.
-      #
-      # 90 days is GitHub's ceiling for artifacts on a public repository, not a
-      # choice — there is no indefinite retention for artifacts at any value. The
-      # permanent copy of a build is the release asset, which does not expire, so
-      # attaching this zip to the release is what makes it durable.
-      - name: Upload the built zip
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: screenly-cast-${{ github.ref_name }}
-          path: dist/screenly-cast.zip
-          retention-days: 90
+      # The zip that was actually deployed, attached to the release that triggered
+      # this run. Release assets do not expire, which is what makes the build durable
+      # — artifacts top out at GitHub's 90-day ceiling for public repositories, and
+      # there is no indefinite retention at any value.
+      - name: Attach the built zip to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: gh release upload "$TAG" dist/screenly-cast.zip --clobber

@@ -43,11 +43,16 @@ rsync -a \
   --exclude '*.map' \
   "$ROOT/$SLUG/" "$BUILD_DIR/"
 
-# Fail loudly rather than shipping an incomplete plugin.
+# Fail loudly rather than shipping an incomplete plugin. readme.txt is generated
+# rather than committed, so its absence means a step was skipped, not that the file
+# was lost — say which step.
 missing=0
 for required in screenly-cast.php readme.txt; do
   if [ ! -f "$BUILD_DIR/$required" ]; then
     echo "error: $required is missing from the build" >&2
+    if [ "$required" = "readme.txt" ]; then
+      echo "       it is generated: run \`bun run readme\` first" >&2
+    fi
     missing=1
   fi
 done

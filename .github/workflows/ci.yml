@@ -28,13 +28,22 @@ jobs:
           bun-version: ${{ env.BUN_VERSION }}
       - run: bun install --frozen-lockfile
 
-      # The plugin header, the SRLY_VERSION constant and readme.txt's stable tag
-      # all derive from package.json. Catch drift here rather than at release.
+      # The plugin header and the SRLY_VERSION constant both derive from
+      # package.json. Catch drift here rather than at release.
       - name: Version consistency
         run: bun run version:check
 
       - name: Lint (Biome + markdownlint)
         run: bun run lint
+
+      # readme.txt is generated, so the thing to check is that it can be generated:
+      # the markdown converts, the short description and tag count are legal, and the
+      # result is inside WordPress.org's 10,000-byte limit. Run against the real
+      # releases so the changelog path is exercised too, not just the listing.
+      - name: Render readme.txt and changelog.txt
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bun run readme
 
       # shellcheck ships on the runner image, so this needs no third-party action.
       # --severity=style because the shipped scripts are clean at that level and
@@ -160,6 +169,13 @@ jobs:
       - name: Build signage assets
         run: bun run build
 
+      # Plugin Check reads readme.txt, and it is generated rather than committed, so
+      # without this the check would run against a plugin with no readme at all.
+      - name: Render readme.txt and changelog.txt
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bun run readme
+
       # The same Plugin Check the WordPress.org review team runs. Catching a
       # violation here is much cheaper than a rejected release.
       - name: Plugin Check
@@ -212,6 +228,13 @@ jobs:
       - run: bun install --frozen-lockfile
       - name: Build signage assets
         run: bun run build
+
+      # build.sh refuses to package without readme.txt, which is generated.
+      - name: Render readme.txt and changelog.txt
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bun run readme
+
       - name: Build distributable
         run: ./bin/build.sh
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

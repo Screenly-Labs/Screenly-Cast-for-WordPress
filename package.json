@@ -17,6 +17,22 @@
   "engines": {
     "bun": ">=1.3.0"
   },
+  "wordpress": {
+    "contributors": [
+      "vpetersson"
+    ],
+    "tags": [
+      "digital signage",
+      "kiosk",
+      "tv",
+      "screenly",
+      "anthias"
+    ],
+    "requiresAtLeast": "6.8",
+    "testedUpTo": "7.1",
+    "requiresPHP": "8.2",
+    "licenseURI": "https://www.gnu.org/licenses/agpl-3.0.html"
+  },
   "scripts": {
     "build": "bun run build.ts",
     "build:check": "bun run build.ts && git diff --exit-code -- screenly-cast/assets/dist",
@@ -34,7 +50,9 @@
     "test:e2e": "playwright test",
     "test:e2e:update": "playwright test --update-snapshots",
     "version:sync": "bun run bin/sync-version.ts",
-    "version:check": "bun run bin/sync-version.ts --check"
+    "version:check": "bun run bin/sync-version.ts --check",
+    "readme": "bun run bin/make-readme.ts",
+    "readme:offline": "bun run bin/make-readme.ts --no-releases"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.8",

@@ -50,8 +50,9 @@ signage render from your own browser.
    a playlist, and pick a duration that suits the amount of text.
 
 Works with [Screenly](https://www.screenly.io) and
-[Anthias](https://anthias.screenly.io/), and with most other digital signage
-systems.
+[Anthias](https://anthias.screenly.io/) out of the box. A render is just a URL,
+so it works the same way on any other player, wallboard or Chrome kiosk that can
+open a web page.
 
 ## How it works
 
@@ -218,10 +219,11 @@ The plugin is mounted into the environment, so PHP edits are live. Re-run
 ```bash
 bun run lint          # Biome (JS/CSS) + markdownlint
 bun run typecheck     # tsc
-bun run version:check # header and readme.txt agree with package.json
+bun run version:check # plugin header agrees with package.json
+bun run readme        # render readme.txt; fails on anything WP.org rejects
 
 composer run lint:php # PHP_CodeSniffer, WordPress standards
-composer run analyse  # PHPStan, level 8
+composer run analyse  # PHPStan, level max
 
 bun run test:php      # PHPUnit, inside wp-env
 bun run env:seed      # seed the browser-test fixture corpus
@@ -240,23 +242,60 @@ Note that the compiled assets under `screenly-cast/assets/dist/` are
 **committed**: WordPress.org runs no build step, so the plugin has to carry
 them. CI fails if they differ from a fresh build.
 
+### The WordPress.org listing
+
+`screenly-cast/readme.txt` and `screenly-cast/changelog.txt` are **generated**,
+and are not in the repository. Three inputs:
+
+| Source | Becomes |
+| --- | --- |
+| `readme/listing.md` | the description, installation, FAQ and screenshots |
+| GitHub releases | the changelog, one entry per CalVer release |
+| `readme/history.md` | the pre-CalVer changelog, frozen |
+
+```bash
+bun run readme           # reads the releases through `gh`
+bun run readme:offline   # skip the release lookup, for editing the listing
+```
+
+The header block — stable tag, tested-up-to, tags, contributors — comes from
+`package.json`, so nothing in readme.txt can disagree with the plugin header.
+`bun run readme` also enforces what WordPress.org enforces silently: five tags,
+a 150-byte short description, and a 10,000-byte file. Over that limit the
+directory truncates the listing mid-sentence with no error, so the generator
+takes as many changelog entries as fit and leaves the rest to changelog.txt.
+
+Tables and `####` headings have no readme.txt equivalent and are a hard error
+rather than a silent omission, so `readme/listing.md` avoids both.
+
 ### Releasing
 
 The version lives in `package.json` and is propagated everywhere else:
 
 ```bash
 # 1. Set the new CalVer version in package.json (YYYY.M.MICRO), then:
-bun run version:sync   # writes the header, SRLY_VERSION and the stable tag
+bun run version:sync   # writes the header, SRLY_VERSION and the support floor
 bun run build          # rebuild the committed assets
-# 2. Add a changelog entry in screenly-cast/readme.txt
+# 2. Write the release notes in readme/next-release.md
 # 3. Commit, then tag with the exact same version — no `v` prefix
 git tag 2026.8.1 && git push origin 2026.8.1
+# 4. Cut the release. This is what deploys.
+gh release create 2026.8.1 --notes-file readme/next-release.md
 ```
 
-Pushing the tag deploys to WordPress.org and creates a GitHub release. The
-workflow refuses to publish when the tag, the plugin header and the stable tag
-disagree, so a tag pushed without running `version:sync` fails loudly instead
-of shipping a mislabelled release.
+**Publishing the release deploys to WordPress.org; pushing the tag does not.**
+The changelog is read from the release notes, and at the moment the tag is
+pushed the release does not exist yet — a tag-triggered deploy would ship a
+readme whose changelog stopped at the previous version. The workflow refuses to
+publish when the tag and the plugin header disagree, so a release cut without
+running `version:sync` fails loudly instead of shipping a mislabelled build.
+
+`readme/next-release.md` is where notes for the release being prepared are
+written and reviewed, which is the point of keeping it in the repository — a
+changelog entry deserves review like anything else. Once the release exists, its
+published body wins and the file is ignored, so it cannot go stale into a
+listing. Start a line with `<!-- upgrade-notice -->` and the paragraph after it
+becomes the WordPress.org upgrade notice.
 
 To build an installable zip by hand:
 
