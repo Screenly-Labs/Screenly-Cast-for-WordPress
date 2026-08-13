@@ -339,18 +339,4 @@ final class Settings {
 
 		return '';
 	}
-
-	/**
-	 * Every option the plugin owns, for migration and uninstall to agree on.
-	 *
-	 * @return string[] Option names.
-	 */
-	public static function option_names(): array {
-		return array(
-			self::LOGO_ID_OPTION,
-			self::LOGO_URL_OPTION,
-			self::AUTO_DETECT_OPTION,
-			Migration::VERSION_OPTION,
-		);
-	}
 }

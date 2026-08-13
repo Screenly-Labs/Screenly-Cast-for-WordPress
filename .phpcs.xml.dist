@@ -87,6 +87,19 @@
 	</rule>
 
 	<!--
+	  Same shape, same reason: the uninstall test defines WP_UNINSTALL_PLUGIN,
+	  because that constant is the contract uninstall.php checks before it will run.
+	  It belongs to WordPress, so it cannot carry our prefix.
+
+	  Note what this does NOT do: the sniff stays fully active on screenly-cast/,
+	  where the point of it — a plugin must not put unprefixed names in the global
+	  namespace — actually applies. Nothing the plugin ships is exempted.
+	-->
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound">
+		<exclude-pattern>tests/*</exclude-pattern>
+	</rule>
+
+	<!--
 	  The PHPUnit bootstrap reports setup failures on STDERR before WordPress
 	  exists, so WP_Filesystem is not available and fwrite() is the correct call.
 	-->
