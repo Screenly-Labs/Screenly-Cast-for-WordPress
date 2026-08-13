@@ -64,9 +64,17 @@ jobs:
           BUILD_DIR: build/screenly-cast
           ASSETS_DIR: .wordpress-org
 
-      - name: Create GitHub release
-        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
+      # The zip that was actually deployed, kept so a release can attach it without
+      # rebuilding. Releases are cut by hand with `gh release create <tag>
+      # dist/screenly-cast.zip` rather than by a third-party action.
+      #
+      # 90 days is GitHub's ceiling for artifacts on a public repository, not a
+      # choice — there is no indefinite retention for artifacts at any value. The
+      # permanent copy of a build is the release asset, which does not expire, so
+      # attaching this zip to the release is what makes it durable.
+      - name: Upload the built zip
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          prerelease: ${{ contains(github.ref_name, '-') }}
-          generate_release_notes: true
-          files: dist/screenly-cast.zip
+          name: screenly-cast-${{ github.ref_name }}
+          path: dist/screenly-cast.zip
+          retention-days: 90

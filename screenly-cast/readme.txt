@@ -129,8 +129,10 @@ For support, feature requests and bug reports, please use the [GitHub Issues pag
 
 == Screenshots ==
 
-1. An example post in WordPress without Screenly Cast.
-2. The same post rendered by Screenly Cast.
+1. An ordinary post as a visitor sees it: navigation, byline, comments, next and previous links.
+2. The same post rendered for a screen. Same content, nothing that assumes somebody is holding a mouse.
+3. The same layout in portrait. Both orientations work from 800x480 up to 4K with nothing to configure.
+4. The whole settings screen. A logo, and whether to recognise signage players.
 
 == Upgrade Notice ==
 
