@@ -119,7 +119,7 @@ function renderPage(renders: Render[]): string {
 <h1>Screenly Cast: signage renders</h1>
 <p class="meta">${renders.length} render(s) across ${byFixture.size} fixture(s). Assertions cover overflow, link flattening, external requests, webfont loading and the title tier; this sheet is for judging the design.</p>
 ${sections}
-${orphans.length > 0 ? `<section><h2>Unrecognised renders</h2><p class="probes">${orphans.map((o) => escapeHtml(o.file)).join(', ')}</p></section>` : ''}
+${orphans.length > 0 ? `<section><h2>Unrecognized renders</h2><p class="probes">${orphans.map((o) => escapeHtml(o.file)).join(', ')}</p></section>` : ''}
 </body>
 </html>
 `

@@ -40,7 +40,7 @@
 
    FOLLOW-UP: signage-kit PR #29 adds a `fontPath` option to processCss() that
    rewrites that prefix. Once it is released and the pinned tag in package.json
-   moves, this whole block should be deleted in favour of
+   moves, this whole block should be deleted in favor of
    `@import '@screenly-labs/signage-kit/styles/fonts.css'` plus
    `processCss(css, { fontPath: 'fonts/' })` in build.ts, at which point the kit is
    once again the only place that decides which font files ship.
@@ -115,7 +115,7 @@
      * The deep ground as a channel triplet, so alpha can be applied per gradient
      * stop: `rgb(var(--srly-ground-deep-rgb) / 0.72)`.
      *
-     * This is the single definition of that colour; --color-ground-deep above is
+     * This is the single definition of that color; --color-ground-deep above is
      * built from it. The scrim previously repeated the literal `rgb(5 7 10 / …)`
      * nine times, which meant overriding the token did nothing to the scrim: the
      * exact drift tokens exist to prevent.
@@ -126,7 +126,7 @@
      * and a slash-alpha works at the floor.
      *
      * NB these live here and not in @theme: Tailwind silently drops custom
-     * properties in @theme that sit in no namespace it recognises, which is a trap
+     * properties in @theme that sit in no namespace it recognizes, which is a trap
      * signage-kit's preset documents having fallen into.
      */
     --srly-ground-deep-rgb: 5 7 10;
@@ -187,7 +187,7 @@
 }
 
 /*
- * The scrim carries the text, so it is weighted towards the edge the text sits
+ * The scrim carries the text, so it is weighted toward the edge the text sits
  * on, but it never reaches zero opacity, even at the far edge.
  *
  * An earlier version faded to fully transparent at the top and looked good over
@@ -260,12 +260,12 @@
 }
 
 /*
- * Centred, not top-aligned.
+ * Centerd, not top-aligned.
  *
  * Top-aligning a short text-only entry left the lower half of a 16:9 screen
  * empty, which reads as a rendering fault rather than as space. Centring makes the
  * type the whole composition, and it degrades better: a long title grows in both
- * directions instead of running towards the bottom edge.
+ * directions instead of running toward the bottom edge.
  */
 .srly--text-only .srly-entry {
   align-self: center;
@@ -302,7 +302,7 @@
 
 /*
  * The eyebrow sits highest in the composition, which over a photograph is where
- * the scrim is weakest. The dim grey that reads as a quiet label against the flat
+ * the scrim is weakest. The dim gray that reads as a quiet label against the flat
  * ground disappears against a bright sky, so it steps up a level when there is an
  * image behind it.
  */

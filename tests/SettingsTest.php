@@ -45,7 +45,7 @@ final class SettingsTest extends WP_UnitTestCase {
 	 * iterates the options *registered* to the page rather than the keys that were
 	 * posted, and calls update_option( $option, null ) for any it does not find.
 	 *
-	 * So the behaviour depends entirely on the sanitize callback mapping null to
+	 * So the behavior depends entirely on the sanitize callback mapping null to
 	 * false, which is what this asserts. The line below is exactly what options.php
 	 * does with an absent key.
 	 */

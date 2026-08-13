@@ -12,7 +12,7 @@
  * Two details that matter for the directory:
  *
  * - The icons must be SQUARE, and the master artwork is not (744x900). It is
- *   scaled to fit and centred rather than stretched.
+ *   scaled to fit and centerd rather than stretched.
  * - The background stays transparent, because the plugin card is light in one
  *   theme and dark in another.
  */

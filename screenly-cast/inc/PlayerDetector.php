@@ -1,6 +1,6 @@
 <?php
 /**
- * Recognises a digital signage player from its request.
+ * Recognizes a digital signage player from its request.
  *
  * @package ScreenlyCast
  */
@@ -25,7 +25,7 @@ defined( 'ABSPATH' ) || exit;
  * The signal set is deliberately narrower than signage-kit's full classifier: the
  * strong, stable signals only. A missed player still works with `?srly`, whereas a
  * false positive sends a human an unexpected page, so the trade is asymmetric and
- * this errs towards missing.
+ * this errs toward missing.
  */
 final class PlayerDetector {
 

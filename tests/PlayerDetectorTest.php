@@ -87,7 +87,7 @@ final class PlayerDetectorTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Player user agents are recognised.
+	 * Player user agents are recognized.
 	 *
 	 * @dataProvider player_user_agents
 	 *
@@ -174,7 +174,7 @@ final class PlayerDetectorTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Android WebView packages are recognised, since for several vendors the user
+	 * Android WebView packages are recognized, since for several vendors the user
 	 * agent says nothing but "Android WebView".
 	 */
 	public function test_signage_package_is_detected(): void {

@@ -18,7 +18,7 @@ board in a school or an office, opening hours and a menu board in a café, a lob
 display, or a Raspberry Pi in kiosk mode showing whatever you published this
 morning.
 
-Point a screen at an ordinary page URL and it shows the signage view. Recognised
+Point a screen at an ordinary page URL and it shows the signage view. Recognized
 signage players are detected from their request and sent to the signage version
 of whatever they asked for, so there is nothing to remember and nothing to edit.
 Appending `?srly` still works, and still wins, which is what you want for
@@ -84,7 +84,7 @@ Use `&srly` when it already has some:
 
 The parameter needs no value. `?srly` on its own is enough.
 
-### How are signage players recognised?
+### How are signage players recognized?
 
 From their request: the `X-Screenly-*` metadata headers a Screenly player can
 send, the Android package name several other players identify themselves with,
@@ -156,7 +156,7 @@ add_filter( 'screenly_cast_show_date', '__return_false' );
 The line above the title then shows your site name instead, so the render still
 says where it came from.
 
-### Can I change the colours and typography?
+### Can I change the colors and typography?
 
 The design is built on CSS custom properties, so overriding a handful of them is
 usually enough. Add your own stylesheet after ours by attaching it to the
@@ -172,7 +172,7 @@ The tokens worth knowing are `--color-ground`, `--color-ink`,
 `--color-ink-soft`, `--color-ink-dim` and `--color-brand`, plus `--root-min`,
 `--root-gain` and `--root-max`, which together drive the whole type scale.
 
-Over a photograph there are two more: `--srly-ground-deep-rgb`, the scrim colour
+Over a photograph there are two more: `--srly-ground-deep-rgb`, the scrim color
 written as `R G B` channels, and `--srly-text-shadow`.
 
 ### Why does my image media page work here but redirect normally?
@@ -202,4 +202,4 @@ For support, feature requests and bug reports, please use the
    somebody is holding a mouse.
 3. The same layout in portrait. Both orientations work from 800x480 up to 4K with
    nothing to configure.
-4. The whole settings screen. A logo, and whether to recognise signage players.
+4. The whole settings screen. A logo, and whether to recognize signage players.

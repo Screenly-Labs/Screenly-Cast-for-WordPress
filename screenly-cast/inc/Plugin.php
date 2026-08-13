@@ -74,7 +74,7 @@ final class Plugin {
 	}
 
 	/**
-	 * Make `srly` a recognised public query variable.
+	 * Make `srly` a recognized public query variable.
 	 *
 	 * @param string[] $vars The registered query variables.
 	 * @return string[] The query variables including ours.

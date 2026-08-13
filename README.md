@@ -25,7 +25,7 @@ With Screenly Cast for WordPress:
 
 ## Usage
 
-Point a screen at an ordinary page URL. Recognised signage players are detected
+Point a screen at an ordinary page URL. Recognized signage players are detected
 from their request and sent to the signage view of whatever they asked for, so
 there is nothing to append and nothing to remember.
 
@@ -46,7 +46,7 @@ signage render from your own browser.
     The parameter needs no value. `?srly` on its own is enough.
 
 1. [Log in to Screenly](https://login.screenlyapp.com), go to **Content**, and
-   add the URL as new **URL** content. Give it a recognisable title, add it to
+   add the URL as new **URL** content. Give it a recognizable title, add it to
    a playlist, and pick a duration that suits the amount of text.
 
 Works with [Screenly](https://www.screenly.io) and
@@ -62,7 +62,7 @@ request, and not for anyone else's.
 
 ### Player detection
 
-A recognised player is **redirected** to the same URL with `?srly` added, rather
+A recognized player is **redirected** to the same URL with `?srly` added, rather
 than being served signage on the original URL. That choice is about caching, and
 it is the whole reason the feature is safe to have on by default: returning two
 different pages for one URL depending on request headers means any page cache or
@@ -175,7 +175,7 @@ The tokens worth knowing:
 | Token | What it controls |
 | --- | --- |
 | `--color-ground` | The page background on text-only renders |
-| `--color-ink` | Title and heading colour |
+| `--color-ink` | Title and heading color |
 | `--color-ink-soft` | Body copy |
 | `--color-ink-dim` | The eyebrow on text-only renders |
 | `--color-brand` | The one accent: the eyebrow rule, list markers, quote rule |
@@ -183,7 +183,7 @@ The tokens worth knowing:
 | `--srly-text-shadow` | Legibility shadow used over photos |
 | `--root-min` / `--root-gain` / `--root-max` | The whole type scale |
 
-`--srly-ground-deep-rgb` is a channel triplet rather than a colour so the scrim
+`--srly-ground-deep-rgb` is a channel triplet rather than a color so the scrim
 can apply a different alpha at each gradient stop. `color-mix()` would be the
 obvious tool, but it is Chrome 111 (above this project's Chrome 87 floor) and
 Lightning CSS cannot down-level it when an operand is a variable.

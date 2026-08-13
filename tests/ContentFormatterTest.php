@@ -49,7 +49,7 @@ final class ContentFormatterTest extends WP_UnitTestCase {
 	/**
 	 * Links collapse to their label rather than vanishing.
 	 *
-	 * This is the plugin's documented behaviour, there is no interaction on a
+	 * This is the plugin's documented behavior, there is no interaction on a
 	 * screen, so a link is just words. It works because `a` is absent from the
 	 * allowlist and kses keeps a disallowed tag's inner text.
 	 */
@@ -112,7 +112,7 @@ final class ContentFormatterTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Blocks emptied by sanitising are dropped rather than left as blank lines.
+	 * Blocks emptied by sanitizing are dropped rather than left as blank lines.
 	 */
 	public function test_empty_blocks_are_dropped(): void {
 		$result = $this->formatter->format(

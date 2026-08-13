@@ -51,7 +51,7 @@ final class ContentFormatter {
 	 * Two omissions are deliberate and load-bearing:
 	 *
 	 * - `a` is absent. kses removes a disallowed tag but keeps its inner text,
-	 *   so links flatten to their label, exactly the documented behaviour, and
+	 *   so links flatten to their label, exactly the documented behavior, and
 	 *   more precise than the previous strip_tags() approach.
 	 * - `img` is absent. The featured image is composed separately by the
 	 *   template; inline images would break a fixed, unscrollable layout.
@@ -204,12 +204,12 @@ final class ContentFormatter {
 	}
 
 	/**
-	 * Drop blocks that contain nothing after sanitising.
+	 * Drop blocks that contain nothing after sanitizing.
 	 *
 	 * Removing an embed, figure or image leaves its wrapper behind, and an empty
 	 * paragraph still occupies a line in a layout with no room to spare.
 	 *
-	 * @param string $html Sanitised HTML.
+	 * @param string $html Sanitized HTML.
 	 * @return string HTML without empty blocks.
 	 */
 	private function remove_empty_blocks( string $html ): string {
@@ -242,7 +242,7 @@ final class ContentFormatter {
 	 * crosses the budget has its text truncated at a word boundary. Working at
 	 * block granularity is what keeps the result well-formed.
 	 *
-	 * @param string $html   Sanitised HTML.
+	 * @param string $html   Sanitized HTML.
 	 * @param int    $budget Characters of text to keep.
 	 * @return string Clamped HTML.
 	 */
@@ -361,7 +361,7 @@ final class ContentFormatter {
 	}
 
 	/**
-	 * Serialise the children of an element.
+	 * Serialize the children of an element.
 	 *
 	 * @param \DOMElement $element The wrapper element.
 	 * @return string The inner HTML.
