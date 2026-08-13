@@ -1,6 +1,6 @@
 <?php
 /**
- * Main plugin class.
+ * Plugin wiring.
  *
  * @package ScreenlyCast
  */
@@ -9,177 +9,224 @@ declare(strict_types=1);
 
 namespace ScreenlyCast;
 
-use ScreenlyCast\Exceptions\ThemeInstallationException;
-use ScreenlyCast\Exceptions\PluginInitializationException;
-use ScreenlyCast\Exceptions\ThemeActivationException;
-use ScreenlyCast\Contracts\Logger;
-use ScreenlyCast\Contracts\Paths;
-use ScreenlyCast\Contracts\ThemeManager;
-use ScreenlyCast\Contracts\VersionChecker;
-use ScreenlyCast\Contracts\Settings as SettingsInterface;
+defined( 'ABSPATH' ) || exit;
 
 /**
- * Main plugin class responsible for initialization and setup.
+ * Registers the plugin's hooks.
+ *
+ * Deliberately thin. The previous Plugin class installed a theme into
+ * wp-content/themes on every single page load and threw exceptions during
+ * bootstrap; this one only attaches hooks and does no work at load time.
  */
-class Plugin {
-	/**
-	 * The WordPress paths manager.
-	 *
-	 * @var Paths
-	 */
-	private Paths $paths;
+final class Plugin {
 
 	/**
-	 * The WordPress theme manager.
+	 * Singleton instance.
 	 *
-	 * @var ThemeManager
+	 * @var self|null
 	 */
-	private ThemeManager $theme_manager;
+	private static ?self $instance = null;
 
 	/**
-	 * The WordPress version checker.
-	 *
-	 * @var VersionChecker
+	 * Private constructor; use instance().
 	 */
-	private VersionChecker $version_checker;
+	private function __construct() {}
 
 	/**
-	 * The WordPress logger.
+	 * The shared plugin instance.
 	 *
-	 * @var Logger
+	 * @return self
 	 */
-	private Logger $logger;
+	public static function instance(): self {
+		if ( null === self::$instance ) {
+			self::$instance = new self();
+		}
+
+		return self::$instance;
+	}
 
 	/**
-	 * The WordPress settings.
-	 *
-	 * @var SettingsInterface
+	 * Attach the plugin's hooks.
 	 */
-	private SettingsInterface $settings;
+	public function boot(): void {
+		add_filter( 'query_vars', array( $this, 'register_query_var' ) );
+		add_action( 'pre_get_posts', array( $this, 'limit_signage_query' ) );
+		add_action( 'template_redirect', array( $this, 'maybe_redirect_player' ), 0 );
+		add_action( 'template_redirect', array( $this, 'maybe_render_as_signage' ), 1 );
 
-	/**
-	 * The core functionality instance.
-	 *
-	 * @var Core
-	 */
-	private Core $core;
+		/*
+		 * The legacy repair switches the active theme, so it must never run from
+		 * a front-end request — doing exactly that on the front end is the bug
+		 * this rewrite removes. Admin and WP-CLI only.
+		 */
+		add_action( 'admin_init', array( Migration::class, 'maybe_run' ) );
+		add_action( 'admin_notices', array( Migration::class, 'maybe_show_notice' ) );
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+			add_action( 'init', array( Migration::class, 'maybe_run' ) );
+		}
 
-	/**
-	 * Constructor.
-	 */
-	public function __construct() {
-		$this->paths           = new WordPressPaths();
-		$this->theme_manager   = new WordPressThemeManager( $this->paths );
-		$this->version_checker = new WordPressVersionChecker();
-		$this->logger          = new WordPressLogger();
-		$this->settings        = new Settings( $this->paths, $this->logger );
-		$this->core           = new Core(
-			$this->logger,
-			$this->paths,
-			$this->theme_manager,
-			$this->version_checker
+		( new Settings() )->register();
+
+		add_filter(
+			'plugin_action_links_' . plugin_basename( SRLY_PLUGIN_FILE ),
+			array( $this, 'add_settings_link' )
 		);
 	}
 
 	/**
-	 * Initialize the plugin.
+	 * Make `srly` a recognised public query variable.
 	 *
-	 * @throws PluginInitializationException If initialization fails.
+	 * @param string[] $vars The registered query variables.
+	 * @return string[] The query variables including ours.
 	 */
-	public function init(): void {
-		try {
-			$this->check_requirements();
-			$this->install_theme();
-			$this->settings->init();
-			$this->core->init();
-			$this->core->admin_init();
-			add_action( 'parse_query', array( $this->core, 'parse_query' ) );
-		} catch ( ThemeInstallationException $e ) {
-			$this->logger->error( esc_html( $e->getMessage() ) );
-			throw new PluginInitializationException(
-				esc_html__( 'Failed to install theme.', 'screenly-cast' )
-			);
-		} catch ( ThemeActivationException $e ) {
-			$this->logger->error( esc_html( $e->getMessage() ) );
-			throw new PluginInitializationException(
-				esc_html__( 'Failed to activate theme.', 'screenly-cast' )
-			);
-		}
+	public function register_query_var( array $vars ): array {
+		$vars[] = SRLY_QUERY_VAR;
+
+		return $vars;
 	}
 
 	/**
-	 * Get plugin data from header.
+	 * Show a single entry on signage requests.
 	 *
-	 * @return array Plugin data.
+	 * A screen displays one thing at a time, so an archive or the blog home
+	 * renders its most recent entry rather than a list.
+	 *
+	 * @param \WP_Query $query The query being prepared.
 	 */
-	private function get_plugin_data(): array {
-		if ( ! function_exists( 'get_file_data' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/plugin.php';
+	public function limit_signage_query( \WP_Query $query ): void {
+		if ( is_admin() || ! $query->is_main_query() ) {
+			return;
 		}
-		return get_file_data(
-			dirname( __DIR__ ) . '/screenly-cast.php',
-			array(
-				'requires_php' => 'Requires PHP',
-			)
+
+		if ( ! array_key_exists( SRLY_QUERY_VAR, $query->query_vars ) ) {
+			return;
+		}
+
+		$query->set( 'posts_per_page', 1 );
+		$query->set( 'ignore_sticky_posts', true );
+	}
+
+	/**
+	 * Send a detected signage player to the signage URL for what it asked for.
+	 *
+	 * A redirect rather than rendering signage in place, and the reason is caching.
+	 * Returning different HTML for the same URL depending on request headers means
+	 * any page cache or CDN in front of the site — and most WordPress sites have one
+	 * — serves whichever version it happened to cache first to everybody. A screen
+	 * would get the normal theme, or worse, a human would get the signage render.
+	 * `Vary` is not a dependable answer: CDNs routinely strip or ignore it.
+	 *
+	 * Redirecting keeps one URL per variant, which is the property that made `?srly`
+	 * work in the first place: signage HTML caches under `?srly`, ordinary HTML
+	 * caches under the bare URL, and neither can be served to the wrong audience.
+	 * Only the redirect itself must dodge the cache, and it is a few bytes.
+	 *
+	 * The cost is one extra round trip, which is nothing next to a signage dwell
+	 * time of ten seconds or more.
+	 */
+	public function maybe_redirect_player(): void {
+		// Already signage: nothing to do, and redirecting again would loop.
+		if ( SignageRequest::is_requested() ) {
+			return;
+		}
+
+		if ( ! Settings::auto_detect_enabled() ) {
+			return;
+		}
+
+		if ( ! $this->is_redirectable_request() ) {
+			return;
+		}
+
+		if ( ! PlayerDetector::is_signage_player() ) {
+			return;
+		}
+
+		// nocache_headers() so an intermediary does not cache the redirect itself and
+		// then send humans to the signage URL.
+		nocache_headers();
+		wp_safe_redirect( add_query_arg( SRLY_QUERY_VAR, '' ), 302 );
+		exit;
+	}
+
+	/**
+	 * Whether this request is one it is safe to redirect.
+	 *
+	 * Logged-in users are excluded so an editor previewing their own site is never
+	 * bounced into a signage view, and because a false positive is far more annoying
+	 * for someone working on the site than for an anonymous visitor.
+	 *
+	 * @return bool
+	 */
+	private function is_redirectable_request(): bool {
+		if ( is_admin() || wp_doing_ajax() || is_user_logged_in() ) {
+			return false;
+		}
+
+		if ( is_feed() || is_robots() || is_trackback() || is_404() ) {
+			return false;
+		}
+
+		if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+			return false;
+		}
+
+		return 'GET' === strtoupper( Request::server_string( 'REQUEST_METHOD' ) );
+	}
+
+	/**
+	 * Hand the request to the signage renderer when it asked for signage.
+	 */
+	public function maybe_render_as_signage(): void {
+		$request = SignageRequest::current();
+
+		if ( ! $request->active ) {
+			Renderer::clear();
+
+			return;
+		}
+
+		( new Renderer( $request ) )->register();
+	}
+
+	/**
+	 * Add a Settings link to the plugin row.
+	 *
+	 * @param string[] $links The existing action links.
+	 * @return string[] The action links with ours first.
+	 */
+	public function add_settings_link( array $links ): array {
+		$link = sprintf(
+			'<a href="%s">%s</a>',
+			esc_url( admin_url( 'options-general.php?page=' . Settings::PAGE_SLUG ) ),
+			esc_html__( 'Settings', 'screenly-cast' )
 		);
+
+		array_unshift( $links, $link );
+
+		return $links;
 	}
 
 	/**
-	 * Check WordPress version requirements.
+	 * Activation hook.
 	 *
-	 * @throws PluginInitializationException If WordPress or PHP version requirements are not met.
+	 * Runs the legacy repair rather than stamping a version, so activating this
+	 * build over an old install is itself a valid upgrade path. Migration is
+	 * idempotent and no-ops on a fresh site.
 	 */
-	private function check_requirements(): void {
-		if ( ! $this->version_checker->check_wordpress_version( $this->version_checker->get_required_wordpress_version() ) ) {
-			$wp_version = esc_html( $this->version_checker->get_required_wordpress_version() );
-			$message = sprintf(
-				/* translators: %s: Required WordPress version number */
-				esc_html__( 'Screenly Cast requires WordPress version %s or higher.', 'screenly-cast' ),
-				$wp_version
-			);
-			throw new PluginInitializationException( esc_html( $message ) );
-		}
-
-		$plugin_data = $this->get_plugin_data();
-		if ( version_compare( PHP_VERSION, $plugin_data['requires_php'], '<' ) ) {
-			$php_version = esc_html( $plugin_data['requires_php'] );
-			$message = sprintf(
-				/* translators: %s: Required PHP version number */
-				esc_html__( 'Screenly Cast requires PHP version %s or higher.', 'screenly-cast' ),
-				$php_version
-			);
-			throw new PluginInitializationException( esc_html( $message ) );
-		}
+	public static function on_activate(): void {
+		Migration::maybe_run();
 	}
 
 	/**
-	 * Install the theme.
+	 * Deactivation hook.
 	 *
-	 * @throws ThemeInstallationException If theme installation fails.
+	 * Note what this does *not* do: the previous implementation's deactivate()
+	 * switched the site's theme and issued a redirect, and it ran on ordinary
+	 * front-end page views rather than on deactivation. User data is left alone
+	 * here; uninstall.php handles removal.
 	 */
-	private function install_theme(): void {
-		try {
-			$installer = new ThemeInstaller( $this->paths );
-			$installer->install_theme();
-		} catch ( \Exception $e ) {
-			throw new ThemeInstallationException(
-				esc_html__( 'Failed to install theme files.', 'screenly-cast' )
-			);
-		}
-	}
-
-	/**
-	 * Activate the theme.
-	 *
-	 * @throws ThemeActivationException If theme activation fails.
-	 */
-	private function activate_theme(): void {
-		try {
-			$this->theme_manager->activate( 'screenly-cast' );
-		} catch ( \Exception $e ) {
-			throw new ThemeActivationException(
-				esc_html__( 'Failed to activate theme.', 'screenly-cast' )
-			);
-		}
+	public static function on_deactivate(): void {
+		flush_rewrite_rules();
 	}
 }

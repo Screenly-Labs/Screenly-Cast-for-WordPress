@@ -1,16 +1,18 @@
 <?php
 /**
- * Plugin Name: Screenly Cast
- * Plugin URI: https://www.screenly.io
- * Description: A WordPress plugin to enable easy and beautiful casting of pages, posts and image media on Screenly digital signage devices.
- * Version: 1.0.5
- * Requires at least: 6.2.4
- * Requires PHP: 7.4
- * Author: Screenly, Inc
- * Author URI: https://www.screenly.io
- * License: GPLv2
- * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain: screenly-cast
+ * Plugin Name:       Screenly Cast
+ * Plugin URI:        https://github.com/Screenly-Labs/Screenly-Cast-for-WordPress
+ * Description:       Renders posts, pages and image media in a layout built for digital signage. Append <code>?srly</code> to any URL.
+ * Version:           2026.8.0
+ * Requires at least: 6.8
+ * Requires PHP:      8.2
+ * Author:            Screenly, Inc
+ * Author URI:        https://www.screenly.io
+ * License:           AGPL-3.0-only
+ * License URI:       https://www.gnu.org/licenses/agpl-3.0.html
+ * Text Domain:       screenly-cast
+ * Domain Path:       /languages
+ * Update URI:        https://wordpress.org/plugins/screenly-cast/
  *
  * @package ScreenlyCast
  */
@@ -19,54 +21,52 @@ declare(strict_types=1);
 
 namespace ScreenlyCast;
 
-// If this file is called directly, abort.
-if ( ! defined( 'WPINC' ) ) {
-	die;
-}
+defined( 'ABSPATH' ) || exit;
 
-define( 'SRLY_VERSION', 'VERSION_PLACEHOLDER' );
-define( 'SRLY_WP_VERSION', '4.4.0' );
-define( 'SRLY_PLUGIN_URI', plugin_dir_url( __FILE__ ) );
+/**
+ * The plugin version.
+ *
+ * Written by `bun run version:sync` from package.json — do not edit by hand. It
+ * cache-busts the enqueued signage assets, which matters on players that cache
+ * aggressively. Until this rewrite the constant shipped as the literal string
+ * 'VERSION_PLACEHOLDER', because nothing ever substituted it, so asset
+ * cache-busting never actually worked.
+ */
+define( 'SRLY_VERSION', '2026.8.0' );
+
+define( 'SRLY_PLUGIN_FILE', __FILE__ );
 define( 'SRLY_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
-define( 'SRLY_PLUGIN_NAME', plugin_basename( __FILE__ ) );
-define( 'SRLY_INC_DIR', SRLY_PLUGIN_DIR . 'inc' );
-define( 'SRLY_THEME', 'screenly-cast' );
-define( 'SRLY_THEME_URI', SRLY_PLUGIN_URI . 'theme/screenly-cast' );
-define( 'SRLY_THEME_DIR', SRLY_PLUGIN_DIR . 'theme/screenly-cast' );
-define( 'SRLY_PREFIX', 'srly_' );
+define( 'SRLY_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
-// Set up class autoloader.
+/**
+ * The query variable that switches a request into signage mode.
+ */
+define( 'SRLY_QUERY_VAR', 'srly' );
+
+/*
+ * PSR-4 autoloader for the ScreenlyCast namespace.
+ *
+ * The plugin has no runtime Composer dependencies, so it ships no vendor
+ * directory — Composer is a development-only tool here. This keeps the shipped
+ * plugin exactly equal to the files in this directory.
+ */
 spl_autoload_register(
-	function ( $class_name ) {
-		// Only handle our own namespace.
-		if ( strpos( $class_name, 'ScreenlyCast\\' ) !== 0 ) {
+	static function ( string $class_name ): void {
+		$prefix = __NAMESPACE__ . '\\';
+		if ( ! str_starts_with( $class_name, $prefix ) ) {
 			return;
 		}
 
-		// Convert namespace to file path.
-		$class_path = str_replace( 'ScreenlyCast\\', '', $class_name );
-		$class_path = str_replace( '\\', DIRECTORY_SEPARATOR, $class_path );
-		$file       = __DIR__ . '/inc/' . $class_path . '.php';
+		$relative = substr( $class_name, strlen( $prefix ) );
+		$path     = __DIR__ . '/inc/' . str_replace( '\\', '/', $relative ) . '.php';
 
-		if ( file_exists( $file ) ) {
-			require_once $file;
+		if ( is_readable( $path ) ) {
+			require_once $path;
 		}
 	}
 );
 
-try {
-	$screenly_plugin = new Plugin();
-	$screenly_plugin->init();
-} catch ( \Exception $e ) {
-	add_action(
-		'admin_notices', function () use ( $e ) {
-			$class = 'notice notice-error';
-			$message = $e->getMessage();
-			printf(
-				'<div class="%1$s"><p>%2$s</p></div>',
-				esc_attr( $class ),
-				esc_html( $message )
-			);
-		}
-	);
-}
+register_activation_hook( __FILE__, array( Plugin::class, 'on_activate' ) );
+register_deactivation_hook( __FILE__, array( Plugin::class, 'on_deactivate' ) );
+
+Plugin::instance()->boot();

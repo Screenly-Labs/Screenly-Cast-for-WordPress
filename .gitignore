@@ -16,5 +16,21 @@
 .DS_Store
 Thumbs.db
 
-# PHP CodeSniffer
+# PHP CodeSniffer / PHPStan
 .phpcs-cache
+.phpstan-cache
+
+# Local tool overrides
+/phpunit.xml
+/phpstan.neon
+/.wp-env.override.json
+
+# Playwright
+/test-results
+/playwright-report
+/blob-report
+/tests/e2e/.artifacts
+
+# The compiled signage assets in screenly-cast/assets/dist/ are deliberately
+# COMMITTED: WordPress.org ships no build step, so the plugin has to carry its
+# own built CSS/JS. CI verifies they match a fresh build.

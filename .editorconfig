@@ -1,0 +1,28 @@
+; This file is for unifying the coding style for different editors and IDEs.
+; Editor plugin: https://editorconfig.org
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = tab
+indent_size = 4
+
+; WordPress PHP standards use real tabs; everything JS/CSS/config-shaped uses
+; two spaces, matching the Biome config and the other Screenly repos.
+[*.{js,ts,css,json,yml,yaml,md}]
+indent_style = space
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
+
+[{composer.json,package.json}]
+indent_style = space
+indent_size = 2
+
+[Makefile]
+indent_style = tab

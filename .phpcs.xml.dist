@@ -1,54 +1,155 @@
 <?xml version="1.0"?>
 <ruleset name="Screenly Cast">
-	<description>Screenly Cast Coding Standards</description>
+	<description>Screenly Cast coding standards.</description>
 
-	<!-- What to scan -->
+	<!-- What to scan. The shipped plugin and the test suite, nothing else. The
+	     previous ruleset listed both "screenly-cast" and "." and so scanned the
+	     plugin twice. -->
 	<file>screenly-cast</file>
-	<file>.</file>
-	<exclude-pattern>/vendor/</exclude-pattern>
-	<exclude-pattern>/tests/</exclude-pattern>
-	<exclude-pattern>/node_modules/</exclude-pattern>
-	<exclude-pattern>/build/</exclude-pattern>
-	<exclude-pattern>/dist/</exclude-pattern>
-	<exclude-pattern>rector.php</exclude-pattern>
+	<file>tests</file>
+	<exclude-pattern>*/vendor/*</exclude-pattern>
+	<exclude-pattern>*/node_modules/*</exclude-pattern>
+	<exclude-pattern>*/build/*</exclude-pattern>
+	<exclude-pattern>*/dist/*</exclude-pattern>
 
-	<!-- How to scan -->
-	<arg value="sp"/> <!-- Show sniff and progress -->
+	<!-- How to scan. -->
+	<arg value="sp"/>
 	<arg name="colors"/>
 	<arg name="basepath" value="."/>
 	<arg name="cache" value=".phpcs-cache"/>
 	<arg name="parallel" value="8"/>
 	<arg name="extensions" value="php"/>
-	<arg name="warning-severity" value="0"/> <!-- Don't show warnings -->
-	<config name="ignore_warnings_on_exit" value="1"/> <!-- Don't let warnings affect exit code -->
 
-	<!-- Rules: WordPress Coding Standards -->
-	<config name="minimum_supported_wp_version" value="6.4"/>
+	<!--
+	  Warnings are deliberately NOT suppressed. The previous ruleset set
+	  warning-severity to 0 and ignore_warnings_on_exit to 1, which silenced the
+	  entire class of findings WPCS reports as warnings — including output
+	  escaping and i18n. Several real escaping bugs in this plugin survived
+	  precisely because of that, so the suppression is gone.
+	-->
+
+	<config name="minimum_supported_wp_version" value="6.8"/>
+
 	<rule ref="WordPress">
-		<!-- Allow proper namespacing -->
+		<!-- PSR-4 class files are PascalCase by definition, so the hyphenated
+		     lowercase filename rules cannot apply to them. -->
 		<exclude name="WordPress.Files.FileName"/>
-		<!-- Allow PSR-4 autoloading -->
-		<exclude name="WordPress.Files.FileName.NotHyphenatedLowercase"/>
 	</rule>
 
-	<!-- Allow :: operator for static calls -->
-	<rule ref="PEAR.Functions.FunctionCallSignature">
+	<!-- Let the i18n sniffs actually verify the text domain rather than skipping. -->
+	<rule ref="WordPress.WP.I18n">
 		<properties>
-			<property name="allowMultipleArguments" value="true"/>
-		</properties>
-	</rule>
-
-	<!-- Enforce PSR-4 -->
-	<rule ref="SlevomatCodingStandard.Files.TypeNameMatchesFileName">
-		<properties>
-			<property name="rootNamespaces" type="array">
-				<element key="screenly-cast/inc" value="ScreenlyCast"/>
-				<element key="screenly-cast/inc/Contracts" value="ScreenlyCast\Contracts"/>
+			<property name="text_domain" type="array">
+				<element value="screenly-cast"/>
 			</property>
 		</properties>
 	</rule>
 
-	<!-- PHP compatibility -->
-	<config name="testVersion" value="7.4-"/>
-	<rule ref="PHPCompatibility"/>
+	<!-- Same for the global-prefix sniff: without prefixes configured it cannot
+	     flag an unprefixed global. -->
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<properties>
+			<property name="prefixes" type="array">
+				<element value="ScreenlyCast"/>
+				<element value="screenly_cast"/>
+				<element value="srly"/>
+				<element value="SRLY"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!--
+	  PHP's DOM API uses camelCase property names. They belong to the language,
+	  not to us, so the snake_case sniff has to be told about them rather than
+	  suppressed at each of the dozen call sites.
+	-->
+	<rule ref="WordPress.NamingConventions.ValidVariableName">
+		<properties>
+			<property name="allowed_custom_properties" type="array">
+				<element value="childNodes"/>
+				<element value="documentElement"/>
+				<element value="firstChild"/>
+				<element value="nextSibling"/>
+				<element value="ownerDocument"/>
+				<element value="textContent"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!--
+	  Tests fire WordPress's own hooks (template_redirect, template_include,
+	  wp_robots) to drive the request lifecycle. The sniff reads that as the plugin
+	  declaring unprefixed hooks of its own, which it is not.
+	-->
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound">
+		<exclude-pattern>tests/*</exclude-pattern>
+	</rule>
+
+	<!--
+	  The PHPUnit bootstrap reports setup failures on STDERR before WordPress
+	  exists, so WP_Filesystem is not available and fwrite() is the correct call.
+	-->
+	<rule ref="WordPress.WP.AlternativeFunctions.file_system_operations_fwrite">
+		<exclude-pattern>tests/bootstrap.php</exclude-pattern>
+	</rule>
+
+	<!--
+	  Static typing, enforced rather than encouraged.
+
+	  WordPress's own standard does not require native type declarations, so these
+	  sniffs from slevomat make them mandatory: every parameter, property and
+	  return value must carry a real type, and every file must declare strict
+	  types. PHPStan then checks those types are honest; this is what makes sure
+	  they exist to be checked in the first place.
+
+	  Deliberately NOT enabled: the UselessAnnotation sniffs, which would strip the
+	  @param/@return docblocks that WordPress-Docs requires. The two standards
+	  disagree there, and WordPress's convention wins in a WordPress plugin.
+	-->
+	<rule ref="SlevomatCodingStandard.TypeHints.DeclareStrictTypes">
+		<properties>
+			<property name="declareOnFirstLine" value="false"/>
+			<property name="linesCountBeforeDeclare" value="1"/>
+			<property name="linesCountAfterDeclare" value="1"/>
+			<property name="spacesCountAroundEqualsSign" value="0"/>
+		</properties>
+	</rule>
+	<rule ref="SlevomatCodingStandard.TypeHints.ParameterTypeHint">
+		<properties>
+			<property name="enableObjectTypeHint" value="true"/>
+			<property name="enableMixedTypeHint" value="true"/>
+			<property name="enableUnionTypeHint" value="true"/>
+			<property name="enableIntersectionTypeHint" value="true"/>
+		</properties>
+		<!-- WordPress-Docs requires the @param docblock this would delete. -->
+		<exclude name="SlevomatCodingStandard.TypeHints.ParameterTypeHint.UselessAnnotation"/>
+	</rule>
+	<rule ref="SlevomatCodingStandard.TypeHints.ReturnTypeHint">
+		<properties>
+			<property name="enableObjectTypeHint" value="true"/>
+			<property name="enableStaticTypeHint" value="true"/>
+			<property name="enableNeverTypeHint" value="true"/>
+			<property name="enableUnionTypeHint" value="true"/>
+		</properties>
+		<!-- WordPress-Docs requires the @return docblock this would delete. -->
+		<exclude name="SlevomatCodingStandard.TypeHints.ReturnTypeHint.UselessAnnotation"/>
+	</rule>
+	<rule ref="SlevomatCodingStandard.TypeHints.PropertyTypeHint">
+		<properties>
+			<property name="enableNativeTypeHint" value="true"/>
+			<property name="enableMixedTypeHint" value="true"/>
+			<property name="enableUnionTypeHint" value="true"/>
+		</properties>
+		<!-- WordPress-Docs requires the @var docblock this would delete. -->
+		<exclude name="SlevomatCodingStandard.TypeHints.PropertyTypeHint.UselessAnnotation"/>
+	</rule>
+	<rule ref="SlevomatCodingStandard.TypeHints.NullableTypeForNullDefaultValue"/>
+	<rule ref="SlevomatCodingStandard.Functions.StrictCall"/>
+	<rule ref="SlevomatCodingStandard.PHP.RequireExplicitAssertion">
+		<exclude-pattern>tests/*</exclude-pattern>
+	</rule>
+
+	<!-- PHP compatibility, scoped to WordPress's own polyfills. -->
+	<config name="testVersion" value="8.2-"/>
+	<rule ref="PHPCompatibilityWP"/>
 </ruleset>

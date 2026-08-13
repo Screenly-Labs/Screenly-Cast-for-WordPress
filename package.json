@@ -1,37 +1,55 @@
 {
   "name": "screenly-cast-for-wordpress",
-  "version": "1.0.5",
-  "description": "A WordPress plugin to enable easy and beautiful casting of pages, posts and image media on [Screenly](https://www.screenly.io) digital signage devices.",
-  "main": "index.js",
-  "directories": {
-    "test": "tests"
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "lint:css": "stylelint \"screenly-cast/**/*.css\" \"screenly-cast/theme/**/*.css\"",
-    "lint:css:fix": "stylelint \"screenly-cast/**/*.css\" \"screenly-cast/theme/**/*.css\" --fix",
-    "lint:js": "eslint \"screenly-cast/**/*.js\"",
-    "lint:js:fix": "eslint \"screenly-cast/**/*.js\" --fix",
-    "lint:md": "markdownlint '**/*.md' --ignore node_modules --ignore vendor --config .markdownlint.json",
-    "lint": "npm run lint:css && npm run lint:js && npm run lint:md",
-    "version:sync": "node bin/sync-version.js"
-  },
+  "version": "2026.8.0",
+  "private": true,
+  "type": "module",
+  "description": "A WordPress plugin to enable easy and beautiful casting of pages, posts and image media on Screenly digital signage devices.",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Screenly/Screenly-Cast-for-WordPress.git"
+    "url": "git+https://github.com/Screenly-Labs/Screenly-Cast-for-WordPress.git"
   },
-  "keywords": [],
-  "author": "Screenly, Inc <hello@screenly.io>",
-  "license": "ISC",
+  "homepage": "https://github.com/Screenly-Labs/Screenly-Cast-for-WordPress#readme",
   "bugs": {
-    "url": "https://github.com/Screenly/Screenly-Cast-for-WordPress/issues"
+    "url": "https://github.com/Screenly-Labs/Screenly-Cast-for-WordPress/issues"
   },
-  "homepage": "https://github.com/Screenly/Screenly-Cast-for-WordPress#readme",
+  "author": "Screenly, Inc <hello@screenly.io>",
+  "license": "AGPL-3.0-only",
+  "engines": {
+    "bun": ">=1.3.0"
+  },
+  "scripts": {
+    "build": "bun run build.ts",
+    "build:check": "bun run build.ts && git diff --exit-code -- screenly-cast/assets/dist",
+    "lint": "bun run lint:biome && bun run lint:md",
+    "lint:biome": "biome check --error-on-warnings .",
+    "lint:md": "markdownlint '**/*.md' --config .markdownlint.json --ignore node_modules --ignore vendor --ignore test-results --ignore playwright-report --ignore tests/e2e/.artifacts",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "typecheck": "tsc --noEmit",
+    "env:start": "wp-env start",
+    "env:stop": "wp-env stop",
+    "env:destroy": "wp-env destroy",
+    "env:seed": "bun run tests/e2e/seed.ts",
+    "test:php": "wp-env run tests-cli --env-cwd=/var/www/html/srly vendor/bin/phpunit",
+    "test:e2e": "playwright test",
+    "test:e2e:update": "playwright test --update-snapshots",
+    "version:sync": "bun run bin/sync-version.ts",
+    "version:check": "bun run bin/sync-version.ts --check"
+  },
   "devDependencies": {
-    "@wordpress/eslint-plugin": "^17.3.0",
-    "@wordpress/stylelint-config": "^23.6.0",
-    "eslint": "^8.56.0",
-    "markdownlint-cli": "^0.43.0",
-    "stylelint": "^16.12.0"
+    "@biomejs/biome": "^2.5.8",
+    "@csstools/postcss-cascade-layers": "^6.0.0",
+    "@playwright/test": "^1.62.1",
+    "@screenly-labs/signage-kit": "github:Screenly-Labs/signage-kit#2026.8.4",
+    "@tailwindcss/cli": "^4.3.3",
+    "@types/bun": "^1.3.14",
+    "@wordpress/env": "^11.13.0",
+    "browserslist": "^4.28.8",
+    "esbuild": "^0.28.2",
+    "lightningcss": "^1.33.0",
+    "markdownlint-cli": "^0.49.1",
+    "postcss": "^8.5.26",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^7.0.2"
   }
 }

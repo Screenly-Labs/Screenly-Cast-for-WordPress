@@ -1,48 +1,53 @@
-#!/bin/bash
+#!/usr/bin/env bash
+#
+# Package the plugin exactly as it ships.
+#
+# screenly-cast/ IS the distributable. Development files live outside it, and the
+# compiled assets under screenly-cast/assets/dist are committed because
+# WordPress.org runs no build step. Packaging is therefore a copy plus a zip,
+# with no exclude list that can drift away from the repository layout.
+#
+# The previous script relied on .distignore, whose "/*.txt" rule excluded
+# readme.txt — the one file WordPress.org needs most — and zipped from inside the
+# build directory, producing an archive with no top-level plugin folder. Both are
+# addressed below: the exclude list is a short fixed set, the required files are
+# asserted, and the zip is created from the parent so it wraps screenly-cast/.
 
-# Exit if any command fails
-set -e
+set -euo pipefail
 
-# Directory containing this script
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SLUG="screenly-cast"
+BUILD_ROOT="$ROOT/build"
+BUILD_DIR="$BUILD_ROOT/$SLUG"
+DIST_DIR="$ROOT/dist"
 
-# Plugin root directory (one level up)
-PLUGIN_DIR="$(dirname "$SCRIPT_DIR")"
-
-# Build directory
-BUILD_DIR="$PLUGIN_DIR/build/screenly-cast"
-DIST_DIR="$PLUGIN_DIR/dist"
-
-# Clean up any existing build
-rm -rf "$PLUGIN_DIR/build" "$DIST_DIR"
+rm -rf "$BUILD_ROOT" "$DIST_DIR"
 mkdir -p "$BUILD_DIR" "$DIST_DIR"
 
-# Ensure vendor directory exists (Docker might create it as root)
-if [ -d "$PLUGIN_DIR/vendor" ]; then
-    # Fix permissions if needed
-    if [ ! -w "$PLUGIN_DIR/vendor" ]; then
-        sudo chown -R $(id -u):$(id -g) "$PLUGIN_DIR/vendor"
-    fi
+rsync -a \
+  --exclude '.DS_Store' \
+  --exclude 'Thumbs.db' \
+  --exclude '*.map' \
+  "$ROOT/$SLUG/" "$BUILD_DIR/"
+
+# Fail loudly rather than shipping an incomplete plugin.
+missing=0
+for required in screenly-cast.php readme.txt; do
+  if [ ! -f "$BUILD_DIR/$required" ]; then
+    echo "error: $required is missing from the build" >&2
+    missing=1
+  fi
+done
+if [ "$missing" -ne 0 ]; then
+  exit 1
 fi
 
-# Create a clean copy of the plugin
-cp "$PLUGIN_DIR/screenly-cast/screenly-cast.php" "$BUILD_DIR/"
-rsync -rc --exclude-from="$PLUGIN_DIR/.distignore" "$PLUGIN_DIR/screenly-cast/" "$BUILD_DIR/"
+find "$BUILD_DIR" -type d -exec chmod 755 {} +
+find "$BUILD_DIR" -type f -exec chmod 644 {} +
 
-# Copy assets if they exist
-if [ -d "$PLUGIN_DIR/assets" ]; then
-    mkdir -p "$BUILD_DIR/.wordpress-org"
-    rsync -rc "$PLUGIN_DIR/assets/" "$BUILD_DIR/.wordpress-org/"
-fi
+# Zip from the parent directory so the archive contains a single top-level
+# screenly-cast/ folder, which is what WordPress expects when installing a zip.
+(cd "$BUILD_ROOT" && zip -rq "$DIST_DIR/$SLUG.zip" "$SLUG")
 
-# Create a ZIP file for WordPress installation
-cd "$BUILD_DIR"
-zip -r "$DIST_DIR/screenly-cast.zip" .
-
-# Ensure all files have correct permissions
-find "$BUILD_DIR" -type d -exec chmod 755 {} \;
-find "$BUILD_DIR" -type f -exec chmod 644 {} \;
-
-echo "Build completed in: $BUILD_DIR"
-echo "WordPress installable ZIP created at: $DIST_DIR/screenly-cast.zip"
-echo "You can now test the distribution by copying it to your WordPress plugins directory"
+echo "Build:   $BUILD_DIR"
+echo "Package: $DIST_DIR/$SLUG.zip"

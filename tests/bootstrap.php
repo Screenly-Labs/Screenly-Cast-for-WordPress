@@ -1,40 +1,53 @@
 <?php
+/**
+ * PHPUnit bootstrap for the Screenly Cast test suite.
+ *
+ * WordPress core and the PHPUnit test library both come from wp-env, which
+ * exports WP_TESTS_DIR. The wp-phpunit Composer package is the fallback for
+ * runs outside wp-env.
+ *
+ * @package ScreenlyCast
+ */
+
 declare(strict_types=1);
 
-/**
- * PHPUnit bootstrap file for WordPress plugin tests.
- */
-
-// Composer autoloader must be loaded before WP_PHPUNIT__DIR will be available
-require_once dirname(__DIR__) . '/vendor/autoload.php';
-
-// Give access to tests_add_filter() function.
-require_once '/tmp/wordpress-tests-lib/includes/functions.php';
-
-/**
- * Manually load the plugin being tested.
- */
-function _manually_load_plugin(): void {
-    require dirname(__DIR__) . '/screenly-cast/screenly-cast.php';
+$srly_autoload = dirname( __DIR__ ) . '/vendor/autoload.php';
+if ( ! file_exists( $srly_autoload ) ) {
+	fwrite( STDERR, "Composer dependencies are missing. Run `composer install` first.\n" );
+	exit( 1 );
 }
-tests_add_filter('muplugins_loaded', '_manually_load_plugin');
+require_once $srly_autoload;
 
-/**
- * Set up the WordPress test environment.
- */
-function _setup_test_environment(): void {
-    // Load WordPress admin functions
-    require_once ABSPATH . 'wp-admin/includes/admin.php';
-
-    // Set up admin environment
-    if (!defined('WP_ADMIN')) {
-        define('WP_ADMIN', true);
-    }
-
-    // Set up default theme
-    switch_theme('twentytwentyfour');
+$srly_tests_dir = getenv( 'WP_TESTS_DIR' );
+if ( ! is_string( $srly_tests_dir ) || '' === $srly_tests_dir ) {
+	$srly_tests_dir = dirname( __DIR__ ) . '/vendor/wp-phpunit/wp-phpunit';
 }
-tests_add_filter('setup_theme', '_setup_test_environment');
+$srly_tests_dir = rtrim( $srly_tests_dir, '/\\' );
 
-// Start up the WP testing environment.
-require '/tmp/wordpress-tests-lib/includes/bootstrap.php';
+if ( ! file_exists( $srly_tests_dir . '/includes/functions.php' ) ) {
+	fwrite(
+		STDERR,
+		sprintf(
+			"Could not find the WordPress test library at %s.\nRun the suite through `bun run test:php`, which starts wp-env.\n",
+			$srly_tests_dir
+		)
+	);
+	exit( 1 );
+}
+
+require_once $srly_tests_dir . '/includes/functions.php';
+
+/*
+ * Load the plugin under test. Note that this bootstrap deliberately does NOT
+ * switch the active theme: the previous bootstrap called
+ * switch_theme( 'twentytwentyfour' ), which masked the theme-switching bug this
+ * rewrite exists to remove. Tests assert theme stability instead.
+ */
+tests_add_filter(
+	'muplugins_loaded',
+	static function (): void {
+		require dirname( __DIR__ ) . '/screenly-cast/screenly-cast.php';
+	}
+);
+
+require $srly_tests_dir . '/includes/bootstrap.php';

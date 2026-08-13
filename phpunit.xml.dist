@@ -1,34 +1,22 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
 <phpunit
-    bootstrap="screenly-cast/tests/bootstrap.php"
-    backupGlobals="false"
-    colors="true"
-    convertErrorsToExceptions="true"
-    convertNoticesToExceptions="true"
-    convertWarningsToExceptions="true">
-
-    <testsuites>
-        <testsuite>
-            <directory prefix="test-" suffix=".php">./screenly-cast/tests/</directory>
-        </testsuite>
-    </testsuites>
-
-    <filter>
-        <whitelist>
-            <directory suffix=".php">./screenly-cast</directory>
-            <exclude>
-                <directory>./screenly-cast/tests</directory>
-                <directory>./screenly-cast/vendor</directory>
-            </exclude>
-        </whitelist>
-    </filter>
-
-    <logging>
-        <log type="coverage-clover" target="clover.xml"/>
-    </logging>
-
-    <php>
-        <env name="WP_TESTS_DIR" value="/tmp/wordpress-tests-lib"/>
-        <env name="WP_CORE_DIR" value="/tmp/wordpress/"/>
-    </php>
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+	bootstrap="tests/bootstrap.php"
+	backupGlobals="false"
+	colors="true"
+	beStrictAboutTestsThatDoNotTestAnything="true"
+	failOnRisky="true"
+	failOnWarning="true"
+	>
+	<testsuites>
+		<testsuite name="screenly-cast">
+			<directory suffix="Test.php">tests</directory>
+		</testsuite>
+	</testsuites>
+	<coverage>
+		<include>
+			<directory suffix=".php">screenly-cast/inc</directory>
+		</include>
+	</coverage>
 </phpunit>

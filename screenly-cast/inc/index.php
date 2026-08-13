@@ -2,12 +2,9 @@
 /**
  * Silence is golden.
  *
- * PHP version 5
+ * Prevents a directory listing on servers configured to produce one.
  *
- * @category PHP
- * @package  ScreenlyCast
- * @author   Screenly, Inc <hello@screenly.io>
- * @license  https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html  GPLv2
- * @link     https://github.com/Screenly/Screenly-Cast-for-WordPress
- * @since    0.0.1
+ * @package ScreenlyCast
  */
+
+declare(strict_types=1);

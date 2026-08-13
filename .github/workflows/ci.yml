@@ -1,0 +1,212 @@
+---
+name: CI
+
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  BUN_VERSION: 1.3.14
+
+jobs:
+  js:
+    name: Lint, typecheck, build
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - run: bun install --frozen-lockfile
+
+      # The plugin header, the SRLY_VERSION constant and readme.txt's stable tag
+      # all derive from package.json. Catch drift here rather than at release.
+      - name: Version consistency
+        run: bun run version:check
+
+      - name: Lint (Biome + markdownlint)
+        run: bun run lint
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Build signage assets
+        run: bun run build
+
+      # WordPress.org ships no build step, so screenly-cast/assets/dist is
+      # committed. If a fresh build differs from what is committed, the plugin
+      # would ship stale CSS/JS and nothing else would notice.
+      - name: Committed assets match a fresh build
+        run: git diff --exit-code -- screenly-cast/assets/dist
+
+  php-static:
+    name: PHP static analysis (strict)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: '8.2'
+          coverage: none
+          tools: composer:v2
+
+      # --strict also rejects a lock file that has drifted from composer.json.
+      - name: Validate composer.json and composer.lock
+        run: composer validate --strict --no-check-publish
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --no-progress
+
+      - name: Audit dependencies for advisories
+        run: composer audit --no-interaction
+
+      # Every PHP file must compile. Catches a syntax error in a file that no
+      # test happens to load, such as a template or uninstall.php.
+      - name: Lint PHP syntax
+        run: |
+          find screenly-cast tests -name '*.php' -print0 \
+            | xargs -0 -n1 -P4 php -l > /dev/null
+
+      # WordPress standards, plus the slevomat sniffs that make native parameter,
+      # property and return types mandatory rather than optional.
+      - name: PHP_CodeSniffer
+        run: composer run lint:php
+
+      # PHPStan at level max, with phpstan-strict-rules and the deprecation rules.
+      - name: PHPStan
+        run: composer run analyse
+
+  php-tests:
+    name: PHPUnit PHP ${{ matrix.php }} / WP ${{ matrix.wp }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        # Full cross-product would be 12 environments for little extra signal.
+        # Instead: every supported PHP against current WP, plus every supported
+        # WP against our minimum PHP, plus newest PHP against trunk as an
+        # early-warning cell.
+        include:
+          - { php: '8.2', wp: '7.1' }
+          - { php: '8.3', wp: '7.1' }
+          - { php: '8.4', wp: '7.1' }
+          - { php: '8.2', wp: '7.0' }
+          - { php: '8.2', wp: '6.9' }
+          - { php: '8.2', wp: '6.8' }
+          - { php: '8.4', wp: 'trunk' }
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          tools: composer:v2
+
+      - run: bun install --frozen-lockfile
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --no-progress
+
+      - name: Point wp-env at this matrix cell
+        run: |
+          if [ "${{ matrix.wp }}" = "trunk" ]; then
+            core="WordPress/WordPress#master"
+          else
+            core="WordPress/WordPress#tags/${{ matrix.wp }}"
+          fi
+          printf '{\n  "core": "%s",\n  "phpVersion": "%s"\n}\n' \
+            "$core" "${{ matrix.php }}" > .wp-env.override.json
+          cat .wp-env.override.json
+
+      - name: Start wp-env
+        run: bun run env:start
+
+      - name: PHPUnit
+        run: bun run test:php
+
+      - name: wp-env logs on failure
+        if: failure()
+        run: bunx wp-env logs tests --watch=false || true
+
+  plugin-check:
+    name: WordPress Plugin Check
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - run: bun install --frozen-lockfile
+      - name: Build signage assets
+        run: bun run build
+
+      # The same Plugin Check the WordPress.org review team runs. Catching a
+      # violation here is much cheaper than a rejected release.
+      - name: Plugin Check
+        uses: WordPress/plugin-check-action@10857da14b6c2246d15402b3e69f777edcf8c12e # v1
+        with:
+          build-dir: ./screenly-cast
+
+  e2e:
+    name: Browser tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - run: bun install --frozen-lockfile
+      - name: Build signage assets
+        run: bun run build
+      - name: Install Playwright browsers
+        run: bunx playwright install --with-deps chromium
+      - name: Start wp-env
+        run: bun run env:start
+      - name: Seed the fixture corpus
+        run: bun run env:seed
+      - name: Playwright
+        run: bun run test:e2e
+
+      # The contact sheet is the artifact a human actually looks at, so publish
+      # it whether or not the assertions passed.
+      - name: Upload renders and report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: signage-renders
+          path: |
+            playwright-report
+            test-results
+            tests/e2e/.artifacts
+          retention-days: 14
+          if-no-files-found: ignore
+
+  package:
+    name: Package plugin zip
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - run: bun install --frozen-lockfile
+      - name: Build signage assets
+        run: bun run build
+      - name: Build distributable
+        run: ./bin/build.sh
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: screenly-cast
+          path: dist/screenly-cast.zip
+          retention-days: 14

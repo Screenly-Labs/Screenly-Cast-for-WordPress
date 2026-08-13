@@ -2,7 +2,7 @@
     "name": "screenly/screenly-cast-for-wordpress",
     "description": "WordPress plugin to enable casting of content on Screenly devices",
     "type": "wordpress-plugin",
-    "license": "GPL-2.0-or-later",
+    "license": "AGPL-3.0-only",
     "authors": [
         {
             "name": "Screenly, Inc",
@@ -10,22 +10,23 @@
         }
     ],
     "require": {
-        "php": "^7.4"
+        "php": ">=8.2"
     },
     "require-dev": {
-        "phpunit/phpunit": "^9.0",
-        "yoast/phpunit-polyfills": "^2.0",
-        "squizlabs/php_codesniffer": "^3.7",
-        "wp-coding-standards/wpcs": "^3.0",
         "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+        "phpcompatibility/phpcompatibility-wp": "^2.1",
+        "phpstan/phpstan": "^2.1",
+        "phpstan/phpstan-deprecation-rules": "^2.0",
+        "phpstan/phpstan-strict-rules": "^2.0",
+        "phpunit/phpunit": "^9.6",
         "slevomat/coding-standard": "^8.15",
-        "phpcompatibility/php-compatibility": "^9.3",
-        "phpcompatibility/phpcompatibility-wp": "^2.1"
+        "squizlabs/php_codesniffer": "^3.13",
+        "szepeviktor/phpstan-wordpress": "^2.0",
+        "wp-coding-standards/wpcs": "^3.1",
+        "wp-phpunit/wp-phpunit": "^7.0",
+        "yoast/phpunit-polyfills": "^1.1"
     },
     "autoload": {
-        "classmap": [
-            "screenly-cast/inc/"
-        ],
         "psr-4": {
             "ScreenlyCast\\": "screenly-cast/inc/"
         }
@@ -36,12 +37,13 @@
         }
     },
     "scripts": {
-        "test": "vendor/bin/phpunit",
-        "prepare-test": "bash bin/install-wp-tests.sh wordpress_test root '' localhost latest",
-        "lint:php": "./vendor/bin/phpcs --standard=.phpcs.xml.dist .",
-        "lint:php:fix": "./vendor/bin/phpcbf --standard=.phpcs.xml.dist .",
+        "test": "phpunit",
+        "lint:php": "phpcs --standard=.phpcs.xml.dist",
+        "lint:php:fix": "phpcbf --standard=.phpcs.xml.dist",
+        "analyse": "phpstan analyse --memory-limit=1G",
         "lint": [
-            "@lint:php"
+            "@lint:php",
+            "@analyse"
         ]
     },
     "config": {
@@ -49,7 +51,8 @@
             "dealerdirect/phpcodesniffer-composer-installer": true
         },
         "platform": {
-            "php": "7.4"
-        }
+            "php": "8.2"
+        },
+        "sort-packages": true
     }
 }
