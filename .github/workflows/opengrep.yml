@@ -27,7 +27,7 @@ env:
   # change to our merge gate.
   OPENGREP_VERSION: v1.27.0
   OPENGREP_SHA256: 9d47d7de3f22ec5a93b25af9126648191e3d3b5d759dd4f699006138724719b3
-  # Pinned too, for the same reason — and because rules changing underneath makes
+  # Pinned too, for the same reason, and because rules changing underneath makes
   # a red build impossible to attribute.
   RULES_REF: f1d2b56
 

@@ -3,7 +3,7 @@
  * Plugin Name:       Screenly Cast
  * Plugin URI:        https://github.com/Screenly-Labs/Screenly-Cast-for-WordPress
  * Description:       Renders posts, pages and image media in a layout built for digital signage. Append <code>?srly</code> to any URL.
- * Version:           2026.8.0
+ * Version:           2026.8.1
  * Requires at least: 6.8
  * Requires PHP:      8.2
  * Author:            Screenly, Inc
@@ -26,13 +26,13 @@ defined( 'ABSPATH' ) || exit;
 /**
  * The plugin version.
  *
- * Written by `bun run version:sync` from package.json — do not edit by hand. It
+ * Written by `bun run version:sync` from package.json, do not edit by hand. It
  * cache-busts the enqueued signage assets, which matters on players that cache
  * aggressively. Until this rewrite the constant shipped as the literal string
  * 'VERSION_PLACEHOLDER', because nothing ever substituted it, so asset
  * cache-busting never actually worked.
  */
-define( 'SRLY_VERSION', '2026.8.0' );
+define( 'SRLY_VERSION', '2026.8.1' );
 
 define( 'SRLY_PLUGIN_FILE', __FILE__ );
 define( 'SRLY_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
@@ -47,7 +47,7 @@ define( 'SRLY_QUERY_VAR', 'srly' );
  * PSR-4 autoloader for the ScreenlyCast namespace.
  *
  * The plugin has no runtime Composer dependencies, so it ships no vendor
- * directory — Composer is a development-only tool here. This keeps the shipped
+ * directory, Composer is a development-only tool here. This keeps the shipped
  * plugin exactly equal to the files in this directory.
  */
 spl_autoload_register(

@@ -33,7 +33,7 @@ Dependencies
 
 WordPress Best Practices
 - Use child themes for customizations to preserve update compatibility.
-- Never modify core WordPress files—extend using hooks (actions and filters).
+- Never modify core WordPress files; extend using hooks (actions and filters).
 - Organize theme-specific functions within functions.php.
 - Use WordPress’s user roles and capabilities for managing permissions.
 - Apply the transients API for caching data and optimizing performance.

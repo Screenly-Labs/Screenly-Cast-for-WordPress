@@ -87,7 +87,7 @@ final class PlayerDetectorTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Player user agents are recognised.
+	 * Player user agents are recognized.
 	 *
 	 * @dataProvider player_user_agents
 	 *
@@ -174,7 +174,7 @@ final class PlayerDetectorTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Android WebView packages are recognised, since for several vendors the user
+	 * Android WebView packages are recognized, since for several vendors the user
 	 * agent says nothing but "Android WebView".
 	 */
 	public function test_signage_package_is_detected(): void {
@@ -222,7 +222,7 @@ final class PlayerDetectorTest extends WP_UnitTestCase {
 	 *
 	 * Serving a crawler a stripped, noindex render in place of a real page is both an
 	 * SEO problem and a form of cloaking, so the bot check runs before everything
-	 * else — including before the Screenly headers, which a crawler would not send
+	 * else, including before the Screenly headers, which a crawler would not send
 	 * but which must not be able to override this either.
 	 *
 	 * @dataProvider bot_user_agents

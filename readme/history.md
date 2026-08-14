@@ -4,7 +4,7 @@ Releases that predate CalVer, and with it this pipeline. Frozen text.
 
 The cut is the versioning scheme: the generator reads GitHub releases whose tag
 is CalVer (`YYYY.M.MICRO`) and takes everything older from this file. That is
-not an arbitrary line — of the seven pre-CalVer tags, only `v0.1.18`, `v1.0.0`
+not an arbitrary line: of the seven pre-CalVer tags, only `v0.1.18`, `v1.0.0`
 and `v1.0.1` were ever published as releases, so for `v1.0.2` through `v1.0.5`
 there is no release body to read. Keeping the whole legacy range static is the
 only way that history survives, and it cannot go stale because those releases

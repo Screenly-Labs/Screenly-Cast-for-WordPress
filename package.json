@@ -1,6 +1,6 @@
 {
   "name": "screenly-cast-for-wordpress",
-  "version": "2026.8.0",
+  "version": "2026.8.1",
   "private": true,
   "type": "module",
   "description": "A WordPress plugin to enable easy and beautiful casting of pages, posts and image media on Screenly digital signage devices.",
@@ -36,7 +36,7 @@
   "scripts": {
     "build": "bun run build.ts",
     "build:check": "bun run build.ts && git diff --exit-code -- screenly-cast/assets/dist",
-    "lint": "bun run lint:biome && bun run lint:md",
+    "lint": "bun run lint:biome && bun run lint:md && bun run lint:prose",
     "lint:biome": "biome check --error-on-warnings .",
     "lint:md": "markdownlint '**/*.md' --config .markdownlint.json --ignore node_modules --ignore vendor --ignore test-results --ignore playwright-report --ignore tests/e2e/.artifacts",
     "lint:fix": "biome check --write .",
@@ -52,7 +52,8 @@
     "version:sync": "bun run bin/sync-version.ts",
     "version:check": "bun run bin/sync-version.ts --check",
     "readme": "bun run bin/make-readme.ts",
-    "readme:offline": "bun run bin/make-readme.ts --no-releases"
+    "readme:offline": "bun run bin/make-readme.ts --no-releases",
+    "lint:prose": "bun run bin/check-prose.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.8",

@@ -53,7 +53,7 @@ const SCENE = `
  * Render the sample photograph.
  *
  * The output is generated rather than committed, so callers must be able to make
- * it on demand — CI has no artifacts directory until something creates one.
+ * it on demand, CI has no artifacts directory until something creates one.
  *
  * @param force Re-render even if the file already exists.
  */

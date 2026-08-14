@@ -3,7 +3,7 @@
  *
  * Two jobs. First, pick a title tier from the title's own length, then step it
  * down while the composition still overflows. Second, trim body content that does
- * not fit — because a screen cannot scroll and nobody is there to try.
+ * not fit, because a screen cannot scroll and nobody is there to try.
  *
  * The server already clamps content to a character budget, but characters are a
  * proxy: only the browser knows what fits at this resolution, in this orientation,
@@ -11,7 +11,7 @@
  *
  * Replaces the previous theme's scripts.js, which walked the content one word at a
  * time and forced a layout on every iteration while comparing against a
- * getBoundingClientRect() captured *before* the mutations — so its measurements
+ * getBoundingClientRect() captured *before* the mutations, so its measurements
  * went stale as it worked. This measures after each step and binary-searches, so a
  * 400-word paragraph costs ~9 reflows rather than 400.
  */
@@ -148,7 +148,7 @@ function fit(): void {
    * offsetHeight, not scrollHeight or a bounding rect: offsetHeight is a layout
    * measurement and ignores transforms. The entry animates in from
    * translateY(1.1rem), so a transform-aware reading taken while that animation
-   * runs reports the composition as taller than it is — and the fitter responded
+   * runs reports the composition as taller than it is, and the fitter responded
    * by deleting body copy that fitted perfectly well.
    *
    * The viewport as the reference, not the stage: the stage is a grid container
@@ -165,10 +165,10 @@ function fit(): void {
    *
    * A tier is chosen from the title's character count, which knows nothing about
    * the aspect ratio of the screen. On a portrait player the fluid root is driven
-   * by the long edge, so a 1080x1920 screen sets 31.5px — and a single word at the
+   * by the long edge, so a 1080x1920 screen sets 31.5px, and a single word at the
    * largest tier is then 283px tall and over 1100px wide on a 1080px-wide screen.
    * It does not fit and it never could. The entry is a shrink-to-fit grid item, and
-   * shrink-to-fit floors at min-content — no min-width or max-width changes that —
+   * shrink-to-fit floors at min-content (no min-width or max-width changes that)
    * so the composition simply grew past the viewport and the stage's overflow:hidden
    * clipped the headline. Silently: the document itself never scrolled, so nothing
    * about the page looked wrong from the outside.
@@ -193,7 +193,7 @@ function fit(): void {
    * Last resort, and only once the tiers are exhausted: let the word break.
    *
    * A 40-character unbroken word does not fit on a narrow screen at any tier, and
-   * of the two remaining outcomes — a broken word or a clipped one — the broken one
+   * of the two remaining outcomes, a broken word or a clipped one, the broken one
    * is legible. Deliberately not in the base stylesheet: with break-word always on,
    * the loop above would never see an overflow to correct, so every over-wide title
    * would be hyphen-free mid-word garbage instead of being made smaller first.

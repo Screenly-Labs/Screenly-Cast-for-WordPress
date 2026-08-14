@@ -29,7 +29,7 @@ final class Settings {
 	public const PAGE_SLUG          = 'screenly-cast';
 	public const OPTION_GROUP       = 'screenly_cast';
 	public const SECTION_ID         = 'screenly_cast_branding';
-	public const BEHAVIOUR_SECTION  = 'screenly_cast_behaviour';
+	public const BEHAVIOR_SECTION   = 'screenly_cast_behavior';
 	public const LOGO_ID_OPTION     = 'screenly_cast_logo_id';
 	public const LOGO_URL_OPTION    = 'screenly_cast_logo_url';
 	public const AUTO_DETECT_OPTION = 'screenly_cast_auto_detect';
@@ -64,7 +64,7 @@ final class Settings {
 			self::AUTO_DETECT_OPTION,
 			array(
 				'type'              => 'boolean',
-				'description'       => __( 'Send recognised signage players to the signage view automatically.', 'screenly-cast' ),
+				'description'       => __( 'Send recognized signage players to the signage view automatically.', 'screenly-cast' ),
 				'sanitize_callback' => static fn( mixed $value ): bool => (bool) $value,
 				'default'           => true,
 				'show_in_rest'      => false,
@@ -72,9 +72,9 @@ final class Settings {
 		);
 
 		add_settings_section(
-			self::BEHAVIOUR_SECTION,
+			self::BEHAVIOR_SECTION,
 			__( 'Signage players', 'screenly-cast' ),
-			array( $this, 'render_behaviour_intro' ),
+			array( $this, 'render_behavior_intro' ),
 			self::PAGE_SLUG
 		);
 
@@ -83,7 +83,7 @@ final class Settings {
 			__( 'Detect players', 'screenly-cast' ),
 			array( $this, 'render_auto_detect_field' ),
 			self::PAGE_SLUG,
-			self::BEHAVIOUR_SECTION,
+			self::BEHAVIOR_SECTION,
 			array( 'label_for' => self::AUTO_DETECT_OPTION )
 		);
 
@@ -130,7 +130,7 @@ final class Settings {
 		wp_enqueue_media();
 
 		/*
-		 * Depends on media-editor, which is what provides wp.media — not on jquery,
+		 * Depends on media-editor, which is what provides wp.media, not on jquery,
 		 * which this script does not use. Declaring jquery loaded it on this screen
 		 * for nothing, and would have made the plugin look affected by WordPress
 		 * 7.1's jQuery UI upgrade when it is not.
@@ -156,7 +156,7 @@ final class Settings {
 	/**
 	 * Describe the player-detection section.
 	 */
-	public function render_behaviour_intro(): void {
+	public function render_behavior_intro(): void {
 		echo '<p>' . esc_html__(
 			'With this on, you can point a screen at an ordinary page URL and it will show the signage view, with no need to add ?srly yourself. Adding ?srly still works, and always wins.',
 			'screenly-cast'
@@ -176,12 +176,12 @@ final class Settings {
 				value="1"
 				<?php checked( self::auto_detect_enabled() ); ?>
 			/>
-			<?php esc_html_e( 'Send recognised signage players to the signage view', 'screenly-cast' ); ?>
+			<?php esc_html_e( 'Send recognized signage players to the signage view', 'screenly-cast' ); ?>
 		</label>
 		<p class="description">
 			<?php
 			esc_html_e(
-				'Players are recognised from their request and redirected to the same page with ?srly added. The redirect keeps the two versions of a page cached separately, so a visitor is never served a signage render. Signed-in users and search engines are never redirected.',
+				'Players are recognized from their request and redirected to the same page with ?srly added. The redirect keeps the two versions of a page cached separately, so a visitor is never served a signage render. Signed-in users and search engines are never redirected.',
 				'screenly-cast'
 			);
 			?>
@@ -190,7 +190,7 @@ final class Settings {
 	}
 
 	/**
-	 * Whether recognised signage players should be redirected automatically.
+	 * Whether recognized signage players should be redirected automatically.
 	 *
 	 * @return bool
 	 */

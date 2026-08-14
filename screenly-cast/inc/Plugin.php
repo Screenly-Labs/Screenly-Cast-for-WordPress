@@ -56,7 +56,7 @@ final class Plugin {
 
 		/*
 		 * The legacy repair switches the active theme, so it must never run from
-		 * a front-end request — doing exactly that on the front end is the bug
+		 * a front-end request, doing exactly that on the front end is the bug
 		 * this rewrite removes. Admin and WP-CLI only.
 		 */
 		add_action( 'admin_init', array( Migration::class, 'maybe_run' ) );
@@ -74,7 +74,7 @@ final class Plugin {
 	}
 
 	/**
-	 * Make `srly` a recognised public query variable.
+	 * Make `srly` a recognized public query variable.
 	 *
 	 * @param string[] $vars The registered query variables.
 	 * @return string[] The query variables including ours.
@@ -111,8 +111,8 @@ final class Plugin {
 	 *
 	 * A redirect rather than rendering signage in place, and the reason is caching.
 	 * Returning different HTML for the same URL depending on request headers means
-	 * any page cache or CDN in front of the site — and most WordPress sites have one
-	 * — serves whichever version it happened to cache first to everybody. A screen
+	 * any page cache or CDN in front of the site (and most WordPress sites have one)
+	 * serves whichever version it happened to cache first to everybody. A screen
 	 * would get the normal theme, or worse, a human would get the signage render.
 	 * `Vary` is not a dependable answer: CDNs routinely strip or ignore it.
 	 *

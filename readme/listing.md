@@ -18,14 +18,14 @@ board in a school or an office, opening hours and a menu board in a café, a lob
 display, or a Raspberry Pi in kiosk mode showing whatever you published this
 morning.
 
-Point a screen at an ordinary page URL and it shows the signage view. Recognised
+Point a screen at an ordinary page URL and it shows the signage view. Recognized
 signage players are detected from their request and sent to the signage version
 of whatever they asked for, so there is nothing to remember and nothing to edit.
 Appending `?srly` still works, and still wins, which is what you want for
 previewing on your own machine.
 
 A signage render is the title, the date, a short body, and the featured image if
-there is one. Everything that assumes a person with a mouse is removed —
+there is one. Everything that assumes a person with a mouse is removed:
 navigation, sidebars, comments, links, sharing buttons.
 
 **Your theme is never touched.** A signage request renders through the plugin's
@@ -84,11 +84,11 @@ Use `&srly` when it already has some:
 
 The parameter needs no value. `?srly` on its own is enough.
 
-### How are signage players recognised?
+### How are signage players recognized?
 
 From their request: the `X-Screenly-*` metadata headers a Screenly player can
 send, the Android package name several other players identify themselves with,
-and user agent tokens that name a player and nothing else — Screenly, Anthias,
+and user agent tokens that name a player and nothing else: Screenly, Anthias,
 BrightSign, IAdea, Slideshow and Unifi Connect.
 
 Detection is deliberately cautious, because the two kinds of mistake are not
@@ -100,7 +100,7 @@ So a signal has to name a player and nothing else. Notably absent: LG webOS and
 Samsung Tizen, which run signage displays *and* every LG and Samsung smart TV,
 and QtWebEngine, which signage players embed *and* so does any desktop Qt
 application. Search engines, signed-in users and meeting-room devices are
-excluded too — a room calendar is not signage.
+excluded too: a room calendar is not signage.
 
 A detected player is sent to the same URL with `?srly` added rather than being
 shown signage on the original URL, so that a page cache or CDN never has to serve
@@ -139,7 +139,7 @@ a screen.
 ### Which image is used?
 
 The featured image if the post has one. Failing that, the first image in the post
-content that comes from your media library — so adding a picture with the "Add
+content that comes from your media library, so adding a picture with the "Add
 Media" button is enough, and you do not have to set a featured image as well.
 Images hotlinked from other sites are ignored.
 
@@ -156,7 +156,7 @@ add_filter( 'screenly_cast_show_date', '__return_false' );
 The line above the title then shows your site name instead, so the render still
 says where it came from.
 
-### Can I change the colours and typography?
+### Can I change the colors and typography?
 
 The design is built on CSS custom properties, so overriding a handful of them is
 usually enough. Add your own stylesheet after ours by attaching it to the
@@ -172,7 +172,7 @@ The tokens worth knowing are `--color-ground`, `--color-ink`,
 `--color-ink-soft`, `--color-ink-dim` and `--color-brand`, plus `--root-min`,
 `--root-gain` and `--root-max`, which together drive the whole type scale.
 
-Over a photograph there are two more: `--srly-ground-deep-rgb`, the scrim colour
+Over a photograph there are two more: `--srly-ground-deep-rgb`, the scrim color
 written as `R G B` channels, and `--srly-text-shadow`.
 
 ### Why does my image media page work here but redirect normally?
@@ -202,4 +202,4 @@ For support, feature requests and bug reports, please use the
    somebody is holding a mouse.
 3. The same layout in portrait. Both orientations work from 800x480 up to 4K with
    nothing to configure.
-4. The whole settings screen. A logo, and whether to recognise signage players.
+4. The whole settings screen. A logo, and whether to recognize signage players.

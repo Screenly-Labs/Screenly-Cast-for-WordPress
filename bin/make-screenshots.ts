@@ -5,11 +5,11 @@
  * These are the images a prospective user judges the plugin by, and they were the
  * most out of date thing in the repository: the committed pair predated the
  * rewrite, so they advertised a design the plugin no longer has. Generating them
- * from the real site means they cannot drift again — re-run after a design change.
+ * from the real site means they cannot drift again, re-run after a design change.
  *
  * The content is its own thing, seeded and removed around the capture, rather than
  * reused from the browser-test corpus. Test fixtures should stay deliberately
- * awkward — overlong titles, emoji, empty bodies — and none of that belongs in a
+ * awkward (overlong titles, emoji, empty bodies) and none of that belongs in a
  * listing image. This is a small narrative instead: an office notice board, which
  * is the most common real use of the plugin.
  *

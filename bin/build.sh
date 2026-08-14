@@ -8,7 +8,7 @@
 # with no exclude list that can drift away from the repository layout.
 #
 # The previous script relied on .distignore, whose "/*.txt" rule excluded
-# readme.txt — the one file WordPress.org needs most — and zipped from inside the
+# readme.txt (the one file WordPress.org needs most), and zipped from inside the
 # build directory, producing an archive with no top-level plugin folder. Both are
 # addressed below: the exclude list is a short fixed set, the required files are
 # asserted, and the zip is created from the parent so it wraps screenly-cast/.
@@ -17,7 +17,7 @@ set -euo pipefail
 
 # Name the missing tool rather than failing obscurely at the point of use. Without
 # this, a machine without `zip` copies and validates the whole plugin and then dies
-# on the last line with nothing to indicate why — which is exactly what happened.
+# on the last line with nothing to indicate why, which is exactly what happened.
 missing_tools=()
 for tool in rsync zip; do
   command -v "$tool" >/dev/null 2>&1 || missing_tools+=("$tool")
@@ -45,7 +45,7 @@ rsync -a \
 
 # Fail loudly rather than shipping an incomplete plugin. readme.txt is generated
 # rather than committed, so its absence means a step was skipped, not that the file
-# was lost — say which step.
+# was lost, say which step.
 missing=0
 for required in screenly-cast.php readme.txt; do
   if [ ! -f "$BUILD_DIR/$required" ]; then
