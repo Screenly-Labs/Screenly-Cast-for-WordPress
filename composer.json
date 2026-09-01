@@ -40,7 +40,7 @@
         "test": "phpunit",
         "lint:php": "phpcs --standard=.phpcs.xml.dist",
         "lint:php:fix": "phpcbf --standard=.phpcs.xml.dist",
-        "analyse": "phpstan analyse --memory-limit=1G",
+        "analyse": "phpstan analyse --memory-limit=2G",
         "lint": [
             "@lint:php",
             "@analyse"
