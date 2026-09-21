@@ -56,14 +56,14 @@
     "lint:prose": "bun run bin/check-prose.ts"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.13",
+    "@biomejs/biome": "^2.5.14",
     "@csstools/postcss-cascade-layers": "^6.0.0",
     "@playwright/test": "^1.63.0",
     "@screenly-labs/signage-kit": "github:Screenly-Labs/signage-kit#2026.8.4",
     "@tailwindcss/cli": "^4.3.3",
     "@types/bun": "^1.4.2",
     "@wordpress/env": "^11.15.0",
-    "browserslist": "^4.28.9",
+    "browserslist": "^4.29.0",
     "esbuild": "^0.28.2",
     "lightningcss": "^1.33.0",
     "markdownlint-cli": "^0.49.1",
