@@ -112,15 +112,15 @@ jobs:
         # early-warning cell.
         #
         # `ref` is stated explicitly rather than derived from `wp`, because the
-        # mapping is not uniform: released versions have a tag, but 7.1 has only a
-        # branch until it ships, and trunk is a branch by definition. Deriving
-        # `tags/<version>` silently produced an unresolvable ref for 7.1 and every
-        # one of those cells failed in wp-env rather than in a way that named the
-        # cause. Swap 7.1 to `tags/7.1` once it is released.
+        # mapping is not uniform: released versions have a tag, an unreleased
+        # version has only a branch, and trunk is a branch by definition. Pin
+        # released versions to a tag, not `<version>-branch`: after a release the
+        # branch carries an `-alpha` version, and wp-env then pairs it with the
+        # trunk test library, which requires classes the branch does not have.
         include:
-          - { php: '8.2', wp: '7.1', ref: '7.1-branch' }
-          - { php: '8.3', wp: '7.1', ref: '7.1-branch' }
-          - { php: '8.4', wp: '7.1', ref: '7.1-branch' }
+          - { php: '8.2', wp: '7.1', ref: 'tags/7.1.3' }
+          - { php: '8.3', wp: '7.1', ref: 'tags/7.1.3' }
+          - { php: '8.4', wp: '7.1', ref: 'tags/7.1.3' }
           - { php: '8.2', wp: '7.0', ref: 'tags/7.0.4' }
           - { php: '8.2', wp: '6.9', ref: 'tags/6.9.7' }
           - { php: '8.2', wp: '6.8', ref: 'tags/6.8.8' }
