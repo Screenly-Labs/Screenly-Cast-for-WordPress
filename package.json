@@ -56,7 +56,7 @@
     "lint:prose": "bun run bin/check-prose.ts"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.15",
+    "@biomejs/biome": "^2.6.2",
     "@csstools/postcss-cascade-layers": "^6.0.1",
     "@playwright/test": "^1.63.0",
     "@screenly-labs/signage-kit": "github:Screenly-Labs/signage-kit#2026.8.4",
