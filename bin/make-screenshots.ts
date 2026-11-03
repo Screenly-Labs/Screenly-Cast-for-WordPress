@@ -19,7 +19,10 @@
 import { $ } from 'bun'
 import { chromium, type Page } from '@playwright/test'
 
-const BASE = process.env['SRLY_BASE_URL'] ?? 'http://localhost:8888'
+// Destructured rather than read as `process.env.X` or `process.env['X']`: tsconfig's
+// noPropertyAccessFromIndexSignature rejects the first and Biome's useLiteralKeys the second.
+const { SRLY_BASE_URL } = process.env
+const BASE = SRLY_BASE_URL ?? 'http://localhost:8888'
 const OUT = '.wordpress-org'
 const SCRATCH = 'tests/e2e/.artifacts/screenshot-content'
 const CONTAINER_ROOT = '/var/www/html/srly'
