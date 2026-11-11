@@ -61,7 +61,7 @@ final class Plugin {
 		 */
 		add_action( 'admin_init', array( Migration::class, 'maybe_run' ) );
 		add_action( 'admin_notices', array( Migration::class, 'maybe_show_notice' ) );
-		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+		if ( defined( 'WP_CLI' ) && (bool) WP_CLI ) {
 			add_action( 'init', array( Migration::class, 'maybe_run' ) );
 		}
 
@@ -167,7 +167,7 @@ final class Plugin {
 			return false;
 		}
 
-		if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+		if ( defined( 'REST_REQUEST' ) && (bool) REST_REQUEST ) {
 			return false;
 		}
 
