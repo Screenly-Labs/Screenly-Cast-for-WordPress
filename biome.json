@@ -31,6 +31,18 @@
       }
     }
   },
+  "overrides": [
+    {
+      "includes": ["tests/e2e/**/*.ts"],
+      "linter": {
+        "rules": {
+          "performance": {
+            "useDomNodeTextContent": "off"
+          }
+        }
+      }
+    }
+  ],
   "assist": {
     "enabled": false
   },
