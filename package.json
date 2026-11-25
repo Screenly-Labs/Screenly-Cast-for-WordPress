@@ -29,7 +29,7 @@
       "anthias"
     ],
     "requiresAtLeast": "6.8",
-    "testedUpTo": "7.1",
+    "testedUpTo": "7.2",
     "requiresPHP": "8.2",
     "licenseURI": "https://www.gnu.org/licenses/agpl-3.0.html"
   },
