@@ -82,7 +82,7 @@ final class Migration {
 		}
 
 		// A real administrator, or WP-CLI, which has no user but is already trusted.
-		$is_cli = defined( 'WP_CLI' ) && WP_CLI;
+		$is_cli = defined( 'WP_CLI' ) && (bool) WP_CLI;
 		if ( ! $is_cli && ! current_user_can( 'manage_options' ) ) {
 			return;
 		}
